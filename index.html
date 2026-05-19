@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام QR النظافة — CleanOps</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#2E9DB0;
+  --teal-dark:#1e7a8a;
+  --teal-light:#3db8ce;
+  --green:#7DC242;
+  --green-dark:#5fa030;
+  --green-light:#96d45a;
+  --bg:#f0f7f9;
+  --s1:#ffffff;
+  --s2:#e8f4f7;
+  --border:#c8e4eb;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --success:#7DC242;
+  --text:#1a3a42;
+  --muted:#5a8a95;
+  --card-shadow:0 2px 12px #2E9DB020;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* NAV */
+.nav{
+  background:#fff;
+  border-bottom:3px solid var(--teal);
+  display:flex;align-items:center;padding:0 24px;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 16px #2E9DB025;
+}
+.logo-wrap{display:flex;align-items:center;gap:12px;padding:10px 0;margin-left:32px;}
+.logo-img{width:44px;height:44px;object-fit:contain;}
+.logo-text{display:flex;flex-direction:column;line-height:1.2;}
+.logo-text span:first-child{font-size:15px;font-weight:900;color:var(--teal);}
+.logo-text span:last-child{font-size:10px;font-weight:600;color:var(--green);letter-spacing:.5px;}
+.tab{padding:18px 20px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:.2s;white-space:nowrap;margin-bottom:-3px;}
+.tab:hover{color:var(--teal);}
+.tab.on{color:var(--teal);border-bottom-color:var(--teal);}
+
+/* PAGES */
+.pg{display:none;padding:28px 24px;max-width:1400px;margin:0 auto;}
+.pg.on{display:block;}
+
+/* HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-header h2{font-size:20px;font-weight:900;color:var(--teal);}
+.page-header p{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* SETUP BANNER */
+.setup-banner{
+  background:linear-gradient(135deg,var(--teal)08,var(--green)08);
+  border:1px solid var(--teal)40;
+  border-radius:16px;padding:24px;margin-bottom:24px;
+}
+.setup-banner h3{font-size:15px;font-weight:900;color:var(--teal);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.step{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;line-height:1.7;color:var(--text);}
+.step strong{display:block;color:var(--teal);font-size:13px;margin-bottom:4px;}
+.step code{background:var(--s2);padding:2px 6px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal-dark);direction:ltr;display:inline-block;}
+
+/* INPUTS */
+.input-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.ifield{flex:1;min-width:240px;}
+.ifield label{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;}
+.ifield input{
+  width:100%;background:#fff;border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 14px;font-size:12px;
+  font-family:'IBM Plex Mono',monospace;color:var(--text);direction:ltr;
+  transition:.2s;box-shadow:inset 0 1px 4px #2E9DB010;
+}
+.ifield input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal)15;}
+
+/* BUTTONS */
+.btn{
+  background:linear-gradient(135deg,var(--teal),var(--teal-dark));
+  color:#fff;font-family:'Cairo',sans-serif;font-size:13px;font-weight:900;
+  padding:10px 22px;border:none;border-radius:10px;cursor:pointer;
+  white-space:nowrap;transition:.2s;box-shadow:0 3px 10px var(--teal)30;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px var(--teal)40;}
+.btn.green{background:linear-gradient(135deg,var(--green),var(--green-dark));box-shadow:0 3px 10px var(--green)30;}
+.btn.green:hover{box-shadow:0 5px 16px var(--green)40;}
+.btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 3px 10px #f59e0b30;}
+.btn-sm{
+  font-size:11px;font-family:'Cairo',sans-serif;font-weight:700;
+  padding:5px 14px;background:#fff;border:1.5px solid var(--border);
+  border-radius:8px;color:var(--muted);cursor:pointer;transition:.2s;
+}
+.btn-sm:hover{border-color:var(--teal);color:var(--teal);}
+
+/* STATUS */
+.status-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:600;margin-top:12px;}
+.status-bar.ok{background:#7DC24215;border:1.5px solid var(--green)50;color:var(--green-dark);}
+.status-bar.err{background:#ef444415;border:1.5px solid #ef444440;color:#ef4444;}
+.status-bar.loading{background:var(--teal)10;border:1.5px solid var(--teal)30;color:var(--teal);}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:26px;}
+.kpi{
+  background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  padding:20px 16px;position:relative;overflow:hidden;
+  box-shadow:var(--card-shadow);transition:.2s;
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px #2E9DB030;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.kpi.t::before{background:linear-gradient(90deg,var(--teal),var(--teal-light));}
+.kpi.g::before{background:linear-gradient(90deg,var(--green),var(--green-light));}
+.kpi.w::before{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.kpi.r::before{background:linear-gradient(90deg,#ef4444,#f87171);}
+.kpi.d::before{background:linear-gradient(90deg,var(--teal-dark),var(--teal));}
+.kpi-icon{font-size:24px;margin-bottom:10px;}
+.kpi-val{font-size:32px;font-weight:900;font-family:'IBM Plex Mono',monospace;line-height:1;margin-bottom:4px;}
+.kpi-val.t{color:var(--teal);}
+.kpi-val.g{color:var(--green-dark);}
+.kpi-val.w{color:#d97706;}
+.kpi-val.r{color:#ef4444;}
+.kpi-val.d{color:var(--teal-dark);}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:700;}
+
+/* PANELS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+@media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+
+.panel{background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--card-shadow);}
+.ph{
+  padding:14px 18px;border-bottom:1.5px solid var(--border);
+  font-size:13px;font-weight:700;color:var(--teal);
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,var(--s2),#fff);
+}
+.pb{padding:16px;}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--s2);padding:9px 12px;text-align:right;color:var(--teal);font-weight:700;font-size:11px;letter-spacing:.5px;}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);}
+.tbl tr:last-child td{border:none;}
+.tbl tr:hover td{background:var(--s2)50;}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;}
+.badge.ok{background:var(--green)15;color:var(--green-dark);}
+.badge.warn{background:#f59e0b15;color:#d97706;}
+.badge.err{background:#ef444415;color:#ef4444;}
+
+/* BARS */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-lbl{font-size:11px;color:var(--muted);min-width:140px;text-align:right;}
+.bar-track{flex:1;background:var(--s2);border-radius:6px;height:9px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;transition:width .8s ease;}
+.bar-num{font-size:11px;font-family:'IBM Plex Mono',monospace;min-width:28px;color:var(--teal);font-weight:700;}
+
+/* ACTIVITY */
+.act-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
+.act-item:last-child{border:none;}
+.act-dot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.act-info{flex:1;font-size:12px;line-height:1.6;}
+.act-info strong{color:var(--text);}
+.act-info span{color:var(--muted);}
+.act-time{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+/* QR PAGE */
+.qr-config{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:var(--card-shadow);}
+.qr-config h3{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:12px;}
+.print-bar{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:#fff;border:1.5px solid var(--border);border-radius:12px;
+  margin-bottom:16px;flex-wrap:wrap;box-shadow:var(--card-shadow);
+}
+.print-bar span{font-size:12px;color:var(--muted);flex:1;}
+.search-box{position:relative;margin-bottom:18px;}
+.search-box input{
+  width:100%;background:#fff;border:1.5px solid var(--border);
+  border-radius:12px;padding:12px 18px 12px 44px;font-size:13px;
+  font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;
+  box-shadow:var(--card-shadow);
+}
+.search-box input:focus{outline:none;border-color:var(--teal);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);}
+
+.sector-block{margin-bottom:28px;}
+.sector-hdr{
+  background:linear-gradient(135deg,var(--s2),#fff);
+  border:1.5px solid var(--border);border-radius:12px 12px 0 0;
+  padding:11px 18px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:3px solid transparent;
+}
+.sector-hdr h4{font-size:13px;font-weight:900;}
+.sector-cnt{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);background:#fff;padding:2px 10px;border-radius:20px;border:1px solid var(--border);}
+.sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--border);border:1.5px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden;}
+.site-card{background:#fff;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:.15s;}
+.site-card:hover{background:var(--s2);}
+.qr-wrap{width:110px;height:110px;background:#fff;border:2px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:5px;position:relative;box-shadow:0 2px 8px #00000015;}
+.qr-wrap canvas,.qr-wrap img{width:98px!important;height:98px!important;}
+.qr-num{position:absolute;top:-7px;right:-7px;width:22px;height:22px;background:var(--teal);color:#fff;font-size:9px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;box-shadow:0 2px 6px var(--teal)50;}
+.site-name{font-size:11px;font-weight:700;text-align:center;line-height:1.4;color:var(--text);}
+.site-tag{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+/* WORKERS */
+.worker-card{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:10px;box-shadow:var(--card-shadow);}
+.worker-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.worker-name{font-size:13px;font-weight:700;color:var(--text);}
+.worker-role{font-size:11px;color:var(--muted);}
+.worker-stats{display:flex;gap:16px;margin-top:5px;}
+.ws{font-size:11px;color:var(--muted);}
+.ws strong{color:var(--teal);}
+
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.code-block{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal-dark);background:var(--s2);padding:16px;border-radius:10px;overflow-x:auto;direction:ltr;line-height:1.7;white-space:pre;border:1px solid var(--border);}
+
+/* LOGO SVG fallback */
+.logo-svg{width:44px;height:44px;}
+
+@media print{
+  body{background:#fff!important;}
+  .nav,.setup-banner,.print-bar,.qr-config,#pgDash,#pgWorkers,#pgSetup{display:none!important;}
+  .pg{display:block!important;padding:0!important;}
+  .sector-block{page-break-inside:avoid;}
+  .site-card{break-inside:avoid;}
+  .btn-sm{display:none!important;}
+  .panel{box-shadow:none!important;border:1px solid #ccc!important;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo-wrap">
+    <!-- Logo SVG built from brand colors -->
+    <svg class="logo-svg" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="38" cy="12" r="12" fill="#7DC242"/>
+      <path d="M20 28 Q20 20 30 20 L50 20 Q72 20 72 42 Q72 56 58 60 Q74 64 74 82 Q74 105 50 105 L28 105 Q20 105 20 97 Z" fill="#2E9DB0"/>
+      <path d="M36 60 L36 100 Q36 106 42 106 Q85 106 85 83 Q85 62 60 60 Z" fill="#7DC242" opacity=".85"/>
+      <rect x="28" y="20" width="14" height="85" rx="7" fill="#2E9DB0"/>
+    </svg>
+    <div class="logo-text">
+      <span>نظام النظافة</span>
+      <span>CLEAN OPS — QR SYSTEM</span>
+    </div>
+  </div>
+  <div class="tab on" onclick="go('pgDash',this)">📊 Dashboard</div>
+  <div class="tab" onclick="go('pgQR',this)">📱 QR Codes</div>
+  <div class="tab" onclick="go('pgWorkers',this)">👷 العمال</div>
+  <div class="tab" onclick="go('pgSetup',this)">⚙️ الإعداد</div>
+</nav>
+
+<!-- ======== DASHBOARD ======== -->
+<div class="pg on" id="pgDash">
+  <div class="page-header">
+    <div>
+      <h2>📊 لوحة التحكم</h2>
+      <p id="lastUpdate">لم يتم تحميل البيانات بعد</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn warn" onclick="loadData()">🔄 تحديث</button>
+      <button class="btn" onclick="go('pgSetup',document.querySelectorAll('.tab')[3])">⚙️ إعداد الربط</button>
+    </div>
+  </div>
+
+  <div id="connBanner" class="status-bar err" style="margin-bottom:20px;">
+    ⚠️ لم يتم ربط Google Sheets بعد — اذهب لصفحة الإعداد
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi g"><div class="kpi-icon">✅</div><div class="kpi-val g" id="kDone">—</div><div class="kpi-lbl">مهام منجزة اليوم</div></div>
+    <div class="kpi t"><div class="kpi-icon">📋</div><div class="kpi-val t" id="kTotal">—</div><div class="kpi-lbl">إجمالي التقارير</div></div>
+    <div class="kpi w"><div class="kpi-icon">⚠️</div><div class="kpi-val w" id="kIssues">—</div><div class="kpi-lbl">مواقع فيها مشاكل</div></div>
+    <div class="kpi r"><div class="kpi-icon">🔧</div><div class="kpi-val r" id="kMaint">—</div><div class="kpi-lbl">طلبات صيانة</div></div>
+    <div class="kpi d"><div class="kpi-icon">👷</div><div class="kpi-val d" id="kWorkers">—</div><div class="kpi-lbl">مشرفون نشطون اليوم</div></div>
+    <div class="kpi g"><div class="kpi-icon">⭐</div><div class="kpi-val g" id="kScore">—</div><div class="kpi-lbl">متوسط التقييم</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph">🔔 آخر التقارير <span style="font-size:10px;color:var(--muted);font-weight:400;" id="reportCount"></span></div>
+      <div class="pb" id="actFeed"><div class="empty">لا توجد بيانات — ابدأ بربط الـ Sheets</div></div>
+    </div>
+    <div class="panel">
+      <div class="ph">🚨 مواقع تحتاج انتباه</div>
+      <div class="pb" id="issuesList"><div class="empty">✅ لا توجد مشاكل مسجلة</div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph">📊 أداء القطاعات</div>
+      <div class="pb" id="sectorPerf">
+        <!-- Static preview until data loads -->
+        <div class="bar-row"><div class="bar-lbl">مديرية الأمن</div><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--teal)"></div></div><div class="bar-num">—</div></div>
+        <div class="bar-row"><div class="bar-lbl">إدارة المحور</div><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--green)"></div></div><div class="bar-num">—</div></div>
+        <div class="bar-row"><div class="bar-lbl">إدارة الكراكات</div><div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--teal-dark)"></div></div><div class="bar-num">—</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph">🏆 أكثر المواقع نشاطاً</div>
+      <div class="pb" style="overflow-x:auto;">
+        <table class="tbl" id="topSites">
+          <thead><tr><th>الموقع</th><th>تقارير</th><th>الحالة</th></tr></thead>
+          <tbody><tr><td colspan="3" style="text-align:center;color:var(--muted);">لا توجد بيانات</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== QR CODES ======== -->
+<div class="pg" id="pgQR">
+  <div class="page-header">
+    <div><h2>📱 QR Codes المواقع</h2><p>48 موقع — 8 قطاعات</p></div>
+  </div>
+
+  <div class="qr-config">
+    <h3>🔗 رابط النموذج (AppSheet / Google Form)</h3>
+    <div class="input-row">
+      <div class="ifield">
+        <label>رابط النموذج</label>
+        <input type="text" id="formLink" placeholder="https://www.appsheet.com/start/... أو رابط Google Form" />
+      </div>
+      <button class="btn green" onclick="saveFormLink()">💾 حفظ وتوليد</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">💡 كل QR سيفتح النموذج المخصص لهذا الموقع مباشرة</p>
+  </div>
+
+  <div class="print-bar">
+    <span>🖨️ اطبع كل الـ QR Codes دفعة واحدة أو اطبع موقع واحد من كل كارت</span>
+    <button class="btn" onclick="window.print()">🖨️ طباعة الكل</button>
+  </div>
+
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="ابحث عن موقع..." oninput="filterQR(this.value)" />
+  </div>
+
+  <div id="qrContainer"></div>
+</div>
+
+<!-- ======== WORKERS ======== -->
+<div class="pg" id="pgWorkers">
+  <div class="page-header">
+    <div><h2>👷 متابعة العمال والمشرفين</h2><p id="workersDate"></p></div>
+    <button class="btn warn" onclick="loadData()">🔄 تحديث</button>
+  </div>
+
+  <div class="grid2" style="margin-bottom:20px;">
+    <div class="panel">
+      <div class="ph">👔 المشرفون النشطون اليوم</div>
+      <div class="pb" id="supervisorsGrid"><div class="empty">لا توجد بيانات</div></div>
+    </div>
+    <div class="panel">
+      <div class="ph">📍 المواقع المُغطاة اليوم</div>
+      <div class="pb" id="sitesToday"><div class="empty">لا توجد بيانات</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">📋 سجل التقارير الكامل <span style="font-size:10px;color:var(--muted);font-weight:400;" id="logCount"></span></div>
+    <div class="pb" style="overflow-x:auto;">
+      <table class="tbl" id="fullLog">
+        <thead>
+          <tr>
+            <th>الوقت</th><th>الموقع</th><th>المشرف</th><th>العمال</th>
+            <th>الزي</th><th>روائح</th><th>تسريبات</th><th>صيانة</th><th>التقييم</th><th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="10" style="text-align:center;color:var(--muted);">لا توجد بيانات</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ======== SETUP ======== -->
+<div class="pg" id="pgSetup">
+  <div class="page-header">
+    <div><h2>⚙️ إعداد الربط مع Google Sheets</h2><p>خطوة واحدة للربط الكامل</p></div>
+  </div>
+
+  <div class="setup-banner">
+    <h3>📋 خطوات الربط (مرة واحدة بس)</h3>
+    <div class="steps">
+      <div class="step"><strong>① افتح الـ Google Sheet</strong>الـ Sheet اللي AppSheet بيحفظ فيه البيانات</div>
+      <div class="step"><strong>② افتح Apps Script</strong>من القائمة: <code>Extensions → Apps Script</code></div>
+      <div class="step"><strong>③ انسخ الكود</strong>من الأسفل واحذف الكود القديم والصق الجديد</div>
+      <div class="step"><strong>④ Deploy</strong><code>Deploy → New deployment</code><br><code>Web App → Anyone</code></div>
+      <div class="step"><strong>⑤ انسخ الرابط</strong>انسخ الـ Web App URL وحطه في الخانة أدناه</div>
+    </div>
+    <div class="input-row" style="margin-bottom:12px;">
+      <div class="ifield">
+        <label>Web App URL</label>
+        <input type="text" id="sheetsAPI" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <button class="btn" onclick="connectSheets()">🔗 اتصل وجرب</button>
+    </div>
+    <div id="connStatus"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="ph">📋 كود Apps Script <button onclick="copyCode()" class="btn-sm">📋 نسخ الكود</button></div>
+    <div class="pb">
+      <div class="code-block" id="codeBlock">function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  var data = sheet.getDataRange().getValues();
+  if (data.length < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify({data:[], headers:[], total:0}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var headers = data[0];
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      var val = data[i][j];
+      row[headers[j]] = (val instanceof Date) ? val.toISOString() : val;
+    }
+    rows.push(row);
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify({data:rows, headers:headers, total:rows.length}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;">⚠️ بعد أول Deploy، أي تعديل يحتاج <strong style="color:var(--teal)">New Deployment</strong> مش Manage Deployments</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">🗂️ ربط أسماء الأعمدة</div>
+    <div class="pb">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">لو AppSheet بيستخدم أسماء أعمدة مختلفة، حددها هنا:</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+        <div class="ifield"><label>اسم الموقع</label><input id="colSite" placeholder="اسم الموقع" /></div>
+        <div class="ifield"><label>اسم المشرف</label><input id="colSup" placeholder="اسم المشرف" /></div>
+        <div class="ifield"><label>عدد العمال</label><input id="colWorkers" placeholder="عدد العمال في القسم ؟" /></div>
+        <div class="ifield"><label>التقييم</label><input id="colScore" placeholder="تقييم الحالة العامة" /></div>
+        <div class="ifield"><label>الروائح</label><input id="colSmell" placeholder="هل توجد روائح غير طبيعية؟" /></div>
+        <div class="ifield"><label>التسريبات</label><input id="colLeak" placeholder="هل توجد تسريبات مياه؟" /></div>
+        <div class="ifield"><label>الأعطال</label><input id="colFault" placeholder="هل توجد أعطال تحتاج صيانة؟" /></div>
+        <div class="ifield"><label>الطابع الزمني</label><input id="colTime" placeholder="Timestamp" /></div>
+      </div>
+      <button class="btn green" style="margin-top:14px;" onclick="saveCols()">💾 حفظ الإعدادات</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SECTORS = {
+  "مديرية الأمن والأقسام":["مديرية الامن","نجدة الإسماعيلية","قسم اول","قسم ثانى","قسم ثالث","قسم نفيشة","قسم فايد","ادارة الطرق","ادارة الترحيلات","قسم ابوصوير","قسم التل الكبير","القنطرة شرق","القنطرة غرب","استراحة ضباط ثالث","عيادات الشرطه"],
+  "إدارة المحور":["إدارة محور قناة السويس","ادارة النجدة بالاسماعيلية","جوازات الاسماعيلية","جوازات السويس","فرع نجدة السويس","قرية عامر","جوازات بورسعيد","نجدة بورسعيد","قسم الميناء بورسعيد"],
+  "إدارة الكراكات":["ورش تحركات الهيئة بالسويس","ورش تحركات الهيئة ببورسعيد","معدية الفردان","كوبري منسي","معدية نمرة 6","المكتبة","المطافي القديم","الفروسية","معدية سرابيوم","ورش نفيشة","أدارة الكركات","ورش التحركات","ورش الكراكات","الجونه (هيئة)"],
+  "المديرية المالية":["المديرية المالية"],
+  "عقد الخدمات":["مستشفى نمره 6","إدارة الخدمات","عيادات شوقي خلاف"],
+  "مستشفى الخير والبركة":["مستشفى الخير والبركة"],
+  "مدارس الصعيد":["مدرسة المنيا","مدرسة قنا","مدرسة أسيوط","مدرسة الأقصر"],
+  "البراريم":["بريمة 9"]
+};
+const COLORS={"مديرية الأمن والأقسام":"#2E9DB0","إدارة المحور":"#7DC242","إدارة الكراكات":"#1e7a8a","المديرية المالية":"#f59e0b","عقد الخدمات":"#5fa030","مستشفى الخير والبركة":"#ef4444","مدارس الصعيد":"#f97316","البراريم":"#8b5cf6"};
+
+let apiUrl=localStorage.getItem('co_api')||'';
+let formLink=localStorage.getItem('co_form')||'';
+let cols=JSON.parse(localStorage.getItem('co_cols')||'{}');
+let allData=[];
+
+const C={
+  site:()=>cols.site||'اسم الموقع',
+  sup:()=>cols.sup||'اسم المشرف',
+  workers:()=>cols.workers||'عدد العمال في القسم ؟',
+  score:()=>cols.score||'تقييم الحالة العامة',
+  smell:()=>cols.smell||'هل توجد روائح غير طبيعية؟',
+  leak:()=>cols.leak||'هل توجد تسريبات مياه؟',
+  fault:()=>cols.fault||'هل توجد أعطال تحتاج صيانة؟',
+  time:()=>cols.time||'Timestamp',
+};
+
+function go(id,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if(el)el.classList.add('on');
+}
+
+window.onload=()=>{
+  if(apiUrl)document.getElementById('sheetsAPI').value=apiUrl;
+  if(formLink)document.getElementById('formLink').value=formLink;
+  ['site','sup','workers','score','smell','leak','fault','time'].forEach(k=>{
+    const el=document.getElementById('col'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el&&cols[k])el.value=cols[k];
+  });
+  document.getElementById('workersDate').textContent='اليوم: '+new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  renderQR();
+  if(apiUrl)loadData();
+  else updateBanner(false);
+};
+
+function saveCols(){
+  cols={site:document.getElementById('colSite').value.trim(),sup:document.getElementById('colSup').value.trim(),workers:document.getElementById('colWorkers').value.trim(),score:document.getElementById('colScore').value.trim(),smell:document.getElementById('colSmell').value.trim(),leak:document.getElementById('colLeak').value.trim(),fault:document.getElementById('colFault').value.trim(),time:document.getElementById('colTime').value.trim()};
+  localStorage.setItem('co_cols',JSON.stringify(cols));
+  alert('✅ تم حفظ إعدادات الأعمدة!');
+}
+
+async function connectSheets(){
+  const url=document.getElementById('sheetsAPI').value.trim();
+  if(!url){alert('حط الرابط الأول');return;}
+  const st=document.getElementById('connStatus');
+  st.className='status-bar loading';st.textContent='⏳ جاري الاتصال...';
+  try{
+    const r=await fetch(url);const j=await r.json();
+    apiUrl=url;localStorage.setItem('co_api',url);
+    st.className='status-bar ok';
+    st.textContent=`✅ تم الاتصال! — ${j.total||j.data?.length||0} صف موجود في الـ Sheet`;
+    allData=j.data||[];updateDash();updateBanner(true);
+  }catch(e){
+    st.className='status-bar err';
+    st.textContent='❌ فشل الاتصال — تأكد من إن الـ Web App منشور بصلاحية "Anyone"';
+  }
+}
+
+function saveFormLink(){
+  const v=document.getElementById('formLink').value.trim();
+  if(!v){alert('حط الرابط الأول');return;}
+  formLink=v;localStorage.setItem('co_form',v);
+  renderQR();alert('✅ تم الحفظ! جاري توليد QR Codes...');
+}
+
+async function loadData(){
+  if(!apiUrl)return;
+  try{const r=await fetch(apiUrl);const j=await r.json();allData=j.data||[];updateDash();updateBanner(true);}
+  catch(e){updateBanner(false);}
+}
+
+function updateBanner(ok){
+  const b=document.getElementById('connBanner');
+  if(ok){b.className='status-bar ok';b.textContent='✅ متصل بـ Google Sheets — البيانات محدثة';}
+  else{b.className='status-bar err';b.textContent='⚠️ لم يتم ربط Google Sheets — اذهب لصفحة الإعداد';}
+}
+
+function isToday(ts){
+  if(!ts)return false;
+  try{const d=new Date(ts);const t=new Date();return d.toDateString()===t.toDateString();}catch{return false;}
+}
+function fmt(ts){if(!ts)return'—';try{return new Date(ts).toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});}catch{return ts;}}
+function fmtT(ts){if(!ts)return'';try{return new Date(ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});}catch{return'';}}
+
+function updateDash(){
+  const rows=allData;
+  const today=rows.filter(r=>isToday(r[C.time()]));
+  const issues=rows.filter(r=>r[C.smell()]==='نعم'||r[C.leak()]==='نعم');
+  const maint=rows.filter(r=>r[C.fault()]==='نعم');
+  const scores=rows.map(r=>parseFloat(r[C.score()])).filter(n=>!isNaN(n));
+  const avg=scores.length?(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1):'—';
+  const sups=[...new Set(today.map(r=>r[C.sup()]).filter(Boolean))].length;
+
+  document.getElementById('kDone').textContent=today.length;
+  document.getElementById('kTotal').textContent=rows.length;
+  document.getElementById('kIssues').textContent=issues.length;
+  document.getElementById('kMaint').textContent=maint.length;
+  document.getElementById('kWorkers').textContent=sups;
+  document.getElementById('kScore').textContent=avg;
+  document.getElementById('lastUpdate').textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-EG');
+  document.getElementById('reportCount').textContent=rows.length+' تقرير';
+
+  // Feed
+  const feed=document.getElementById('actFeed');
+  const rec=[...rows].reverse().slice(0,10);
+  if(!rec.length){feed.innerHTML='<div class="empty">لا توجد تقارير بعد</div>';}
+  else feed.innerHTML=rec.map(r=>{
+    const hi=r[C.smell()]==='نعم'||r[C.leak()]==='نعم'||r[C.fault()]==='نعم';
+    return`<div class="act-item"><div class="act-dot" style="background:${hi?'#f59e0b':'#7DC242'}"></div><div class="act-info"><strong>${r[C.site()]||'—'}</strong> <span>— ${r[C.sup()]||'—'}</span></div><div class="act-time">${fmtT(r[C.time()])}</div></div>`;
+  }).join('');
+
+  // Issues
+  const iList=document.getElementById('issuesList');
+  if(!issues.length){iList.innerHTML='<div class="empty">✅ لا توجد مشاكل</div>';}
+  else iList.innerHTML=issues.slice(0,8).map(r=>{
+    const p=[r[C.smell()]==='نعم'?'روائح':'',r[C.leak()]==='نعم'?'تسريبات':'',r[C.fault()]==='نعم'?'أعطال':''].filter(Boolean).join('، ');
+    return`<div class="act-item"><div class="act-dot" style="background:#ef4444"></div><div class="act-info"><strong>${r[C.site()]||'—'}</strong> <span style="color:#ef4444">— ${p}</span></div><div class="act-time">${fmtT(r[C.time()])}</div></div>`;
+  }).join('');
+
+  // Sector perf
+  const sp=document.getElementById('sectorPerf');
+  const sc={};rows.forEach(r=>{const s=r[C.site()];if(s)sc[s]=(sc[s]||0)+1;});
+  const secC={};Object.entries(SECTORS).forEach(([sec,sites])=>{secC[sec]=sites.reduce((a,s)=>a+(sc[s]||0),0);});
+  const maxC=Math.max(...Object.values(secC),1);
+  sp.innerHTML=Object.entries(secC).map(([sec,cnt])=>`<div class="bar-row"><div class="bar-lbl">${sec}</div><div class="bar-track"><div class="bar-fill" style="width:${(cnt/maxC*100).toFixed(0)}%;background:${COLORS[sec]}"></div></div><div class="bar-num">${cnt}</div></div>`).join('');
+
+  // Top sites
+  const sorted=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const tb=document.getElementById('topSites').querySelector('tbody');
+  if(!sorted.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--muted);">لا توجد بيانات</td></tr>';}
+  else tb.innerHTML=sorted.map(([site,cnt])=>{
+    const lr=[...rows].reverse().find(r=>r[C.site()]===site);
+    const hi=lr&&(lr[C.smell()]==='نعم'||lr[C.leak()]==='نعم'||lr[C.fault()]==='نعم');
+    return`<tr><td>${site}</td><td style="font-family:'IBM Plex Mono',monospace;color:var(--teal);">${cnt}</td><td>${hi?'<span class="badge warn">⚠️ مشكلة</span>':'<span class="badge ok">✅ جيد</span>'}</td></tr>`;
+  }).join('');
+
+  updateWorkers(rows,today,sc);
+}
+
+function updateWorkers(rows,today,sc){
+  // Supervisors
+  const sm={};today.forEach(r=>{const s=r[C.sup()]||'—';if(!sm[s])sm[s]={name:s,count:0,sites:[]};sm[s].count++;sm[s].sites.push(r[C.site()]||'—');});
+  const sg=document.getElementById('supervisorsGrid');
+  const sa=Object.values(sm);
+  if(!sa.length){sg.innerHTML='<div class="empty">لا يوجد مشرفون نشطون اليوم</div>';}
+  else sg.innerHTML=sa.map(w=>`<div class="worker-card"><div class="worker-avatar" style="background:var(--teal)15;">👔</div><div class="worker-info"><div class="worker-name">${w.name}</div><div class="worker-role">${[...new Set(w.sites)].slice(0,2).join(' — ')}</div><div class="worker-stats"><div class="ws">تقارير اليوم: <strong>${w.count}</strong></div></div></div></div>`).join('');
+
+  // Sites today
+  const st2=document.getElementById('sitesToday');
+  const todaySites=[...new Set(today.map(r=>r[C.site()]).filter(Boolean))];
+  if(!todaySites.length){st2.innerHTML='<div class="empty">لا توجد مواقع مُغطاة اليوم</div>';}
+  else st2.innerHTML=todaySites.map(s=>`<div class="act-item"><div class="act-dot" style="background:var(--green)"></div><div class="act-info"><strong>${s}</strong></div><div class="act-time">${sc[s]||0} تقرير</div></div>`).join('');
+
+  // Full log
+  document.getElementById('logCount').textContent=rows.length+' تقرير';
+  const tb=document.getElementById('fullLog').querySelector('tbody');
+  const rec=[...rows].reverse().slice(0,50);
+  if(!rec.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);">لا توجد بيانات</td></tr>';return;}
+  tb.innerHTML=rec.map(r=>{
+    const score=parseFloat(r[C.score()]);
+    const sc2=score>=4?'var(--green-dark)':score>=2?'#d97706':'#ef4444';
+    const done=r['هل تم تنفيذ المهمة بالكامل؟']==='نعم';
+    return`<tr><td style="white-space:nowrap;">${fmt(r[C.time()])}</td><td>${r[C.site()]||'—'}</td><td>${r[C.sup()]||'—'}</td><td>${r[C.workers()]||'—'}</td><td>${r['التزام العمال بزي الشركه ؟']==='نعم'?'✅':'❌'}</td><td>${r[C.smell()]==='نعم'?'⚠️':'—'}</td><td>${r[C.leak()]==='نعم'?'⚠️':'—'}</td><td>${r[C.fault()]==='نعم'?'🔧':'—'}</td><td style="color:${sc2};font-weight:700;">${isNaN(score)?'—':score+'/5'}</td><td>${done?'<span class="badge ok">✅ منجز</span>':'<span class="badge err">❌ ناقص</span>'}</td></tr>`;
+  }).join('');
+}
+
+// QR
+let qrN=0;
+function makeQRUrl(site){
+  const base=formLink||'https://www.appsheet.com/start/2de8f6f6-98d8-4ce8-a3d5-3ef5ace5dc3d';
+  return base.includes('appsheet.com')?base:base+(base.includes('?')?'&':'?')+'usp=pp_url&entry.2005620554='+encodeURIComponent(site);
+}
+
+function renderQR(filter=''){
+  const con=document.getElementById('qrContainer');con.innerHTML='';qrN=0;
+  const lf=filter.toLowerCase();
+  for(const[sec,sites]of Object.entries(SECTORS)){
+    const fl=sites.filter(s=>!lf||s.toLowerCase().includes(lf)||sec.toLowerCase().includes(lf));
+    if(!fl.length)continue;
+    const block=document.createElement('div');block.className='sector-block';
+    block.innerHTML=`<div class="sector-hdr" style="border-bottom-color:${COLORS[sec]}"><h4 style="color:${COLORS[sec]}">🏢 ${sec}</h4><span class="sector-cnt">${fl.length} موقع</span></div><div class="sites-grid"></div>`;
+    con.appendChild(block);
+    const grid=block.querySelector('.sites-grid');
+    fl.forEach(site=>{
+      qrN++;const num=qrN;const id='qr'+num;
+      const card=document.createElement('div');card.className='site-card';
+      card.innerHTML=`<div class="qr-wrap" id="${id}"><span class="qr-num">${num}</span></div><div class="site-name">${site}</div><div class="site-tag">${sec}</div><button class="btn-sm" onclick="printOne('${id}','${site.replace(/'/g,"\\'")}')">🖨️ طباعة</button>`;
+      grid.appendChild(card);
+      setTimeout(()=>{
+        try{new QRCode(document.getElementById(id),{text:makeQRUrl(site),width:98,height:98,colorDark:'#1a3a42',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+      },num*12);
+    });
+  }
+}
+
+function filterQR(v){renderQR(v);}
+
+function printOne(qrId,site){
+  const el=document.getElementById(qrId);
+  const canvas=el.querySelector('canvas')||el.querySelector('img');
+  if(!canvas){alert('انتظر ثوانٍ — الـ QR لسه بيتولد');return;}
+  const src=canvas.tagName==='CANVAS'?canvas.toDataURL():canvas.src;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+  <style>body{font-family:'Cairo',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f0f7f9;}
+  .card{border:3px solid #2E9DB0;border-radius:16px;padding:24px;text-align:center;width:230px;background:#fff;box-shadow:0 4px 20px #2E9DB030;}
+  .top{background:linear-gradient(135deg,#2E9DB0,#1e7a8a);margin:-24px -24px 16px;padding:14px;border-radius:13px 13px 0 0;}
+  .top-txt{color:#fff;font-size:11px;font-weight:900;letter-spacing:2px;}
+  img{width:170px;height:170px;display:block;margin:0 auto 14px;border:2px solid #e8f4f7;border-radius:8px;}
+  h2{font-size:16px;font-weight:900;color:#1a3a42;margin-bottom:6px;}
+  p{font-size:10px;color:#5a8a95;}
+  .dot{width:10px;height:10px;background:#7DC242;border-radius:50%;display:inline-block;margin-left:6px;}</style>
+  </head><body><div class="card">
+  <div class="top"><div class="top-txt">🧹 نظام QR النظافة</div></div>
+  <img src="${src}" />
+  <h2><span class="dot"></span>${site}</h2>
+  <p>امسح الكود لتسجيل تقرير النظافة</p>
+  </div><script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('codeBlock').textContent).then(()=>alert('✅ تم نسخ الكود!'));
+}
+</script>
+</body>
+</html> 
