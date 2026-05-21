@@ -248,6 +248,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="tab" onclick="go('pgQR',this)">📱 QR Codes</div>
   <div class="tab" onclick="go('pgWorkers',this)">👷 العمال</div>
   <div class="tab" onclick="go('pgSetup',this)">⚙️ الإعداد</div>
+  <div class="tab" onclick="go('pgManage',this)">➕ إدارة المواقع</div>
 </nav>
 
 <!-- ======== DASHBOARD ======== -->
@@ -374,7 +375,101 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
-<!-- ======== SETUP ======== -->
+<!-- ======== MANAGE SITES ======== -->
+<div class="pg" id="pgManage">
+  <div class="page-header">
+    <div><h2>➕ إدارة المواقع</h2><p>أضف أو احذف مواقع وتولّد QR تلقائياً</p></div>
+  </div>
+
+  <!-- Add new site -->
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="ph">➕ إضافة موقع جديد</div>
+    <div class="pb">
+      <div class="input-row">
+        <div class="ifield">
+          <label>اسم الموقع</label>
+          <input type="text" id="newSiteName" placeholder="مثال: غرفة 201 — الدور الثاني" />
+        </div>
+        <div class="ifield">
+          <label>القطاع / التخصص</label>
+          <select id="newSiteSector" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;">
+          </select>
+        </div>
+        <button class="btn green" onclick="addSite()">➕ إضافة</button>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="newSectorName" placeholder="أو أضف قطاع جديد..." style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;flex:1;min-width:200px;" />
+        <button class="btn" onclick="addSector()" style="background:var(--teal-dark);">➕ قطاع جديد</button>
+      </div>
+
+      <!-- FILE UPLOAD -->
+      <div style="margin-top:16px;border-top:1.5px dashed var(--border);padding-top:16px;">
+        <p style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:10px;">📂 رفع ملف مواقع (Excel أو CSV)</p>
+        <div id="dropZone" onclick="document.getElementById('fileInput').click()"
+          style="border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:.2s;background:var(--s2);"
+          ondragover="event.preventDefault();this.style.borderColor='var(--teal)'"
+          ondragleave="this.style.borderColor='var(--border)'"
+          ondrop="handleDrop(event)">
+          <div style="font-size:32px;margin-bottom:8px;">📁</div>
+          <div style="font-size:13px;font-weight:700;color:var(--teal);">اسحب الملف هنا أو اضغط للاختيار</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">يدعم: Excel (.xlsx, .xls) و CSV</div>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(this.files[0])"/>
+
+        <!-- Preview -->
+        <div id="filePreview" style="display:none;margin-top:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:8px;">📋 معاينة الملف — اختار العمود والقطاع:</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+            <div class="ifield" style="min-width:180px;">
+              <label>عمود أسماء المواقع</label>
+              <select id="colPicker" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;"></select>
+            </div>
+            <div class="ifield" style="min-width:180px;">
+              <label>القطاع المستهدف</label>
+              <select id="fileSector" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;"></select>
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <button class="btn green" onclick="importFromFile()">✅ استيراد</button>
+            </div>
+          </div>
+          <div id="fileTable" style="overflow-x:auto;max-height:220px;border:1px solid var(--border);border-radius:10px;"></div>
+          <div id="fileStats" style="font-size:11px;color:var(--muted);margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sites list by sector -->
+  <div class="panel">
+    <div class="ph">
+      📋 كل المواقع
+      <div style="display:flex;gap:8px;">
+        <input type="text" placeholder="بحث..." oninput="filterManage(this.value)" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;width:160px;" />
+        <button class="btn-sm" onclick="exportSites()">📤 تصدير</button>
+        <button class="btn-sm" onclick="importSites()">📥 استيراد</button>
+      </div>
+    </div>
+    <div class="pb" id="manageList"></div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div id="importModal" style="display:none;position:fixed;inset:0;background:#00000080;z-index:500;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:500px;">
+    <h3 style="font-size:15px;font-weight:900;color:var(--teal);margin-bottom:12px;">📥 استيراد مواقع</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">الصق قائمة المواقع — كل موقع في سطر:</p>
+    <textarea id="importText" style="width:100%;height:150px;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:12px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;resize:vertical;" placeholder="موقع 1&#10;موقع 2&#10;موقع 3"></textarea>
+    <div class="ifield" style="margin-top:10px;">
+      <label>القطاع</label>
+      <select id="importSector" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;font-family:'Cairo',sans-serif;color:var(--text);direction:rtl;"></select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn-sm" onclick="closeImport()">إلغاء</button>
+      <button class="btn green" onclick="doImport()">استيراد</button>
+    </div>
+  </div>
+</div>
+
 <div class="pg" id="pgSetup">
   <div class="page-header">
     <div><h2>⚙️ إعداد الربط مع Google Sheets</h2><p>خطوة واحدة للربط الكامل</p></div>
@@ -450,16 +545,49 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <script>
 const SECTORS = {
-  "مديرية الأمن والأقسام":["مديرية الامن","نجدة الإسماعيلية","قسم اول","قسم ثانى","قسم ثالث","قسم نفيشة","قسم فايد","ادارة الطرق","ادارة الترحيلات","قسم ابوصوير","قسم التل الكبير","القنطرة شرق","القنطرة غرب","استراحة ضباط ثالث","عيادات الشرطه"],
-  "إدارة المحور":["إدارة محور قناة السويس","ادارة النجدة بالاسماعيلية","جوازات الاسماعيلية","جوازات السويس","فرع نجدة السويس","قرية عامر","جوازات بورسعيد","نجدة بورسعيد","قسم الميناء بورسعيد"],
-  "إدارة الكراكات":["ورش تحركات الهيئة بالسويس","ورش تحركات الهيئة ببورسعيد","معدية الفردان","كوبري منسي","معدية نمرة 6","المكتبة","المطافي القديم","الفروسية","معدية سرابيوم","ورش نفيشة","أدارة الكركات","ورش التحركات","ورش الكراكات","الجونه (هيئة)"],
-  "المديرية المالية":["المديرية المالية"],
-  "عقد الخدمات":["مستشفى نمره 6","إدارة الخدمات","عيادات شوقي خلاف"],
-  "مستشفى الخير والبركة":["مستشفى الخير والبركة"],
-  "مدارس الصعيد":["مدرسة المنيا","مدرسة قنا","مدرسة أسيوط","مدرسة الأقصر"],
-  "البراريم":["بريمة 9"]
+  "🚨 الطوارئ والإسعاف": [
+    "الإسعاف", "طوارئ", "الإسعاف الأولي", "جراحة سيدات ثانية", "جراحة رجال ثانية", "جراحة رجال أولى"
+  ],
+  "🏥 العمليات والجراحة": [
+    "العمليات", "قسطرة القلب", "عيادة القلب", "جراحة الأطفال 3", "جراحة الأطفال", "مساعد الجراحة", "غرفة الأطفال"
+  ],
+  "👶 النساء والأطفال": [
+    "النساء والتوليد", "عيادة الأطفال", "دور الاحتياجات", "حضانة الأطفال", "البكتة حريم"
+  ],
+  "🔬 التشخيص والمختبرات": [
+    "الأشعة", "المختبر", "بنك الدم", "مزروعات", "علاج الفيروسات", "الفحوصات الطبية (مبنى 75)"
+  ],
+  "💊 العلاج والتأهيل": [
+    "العلاج الطبيعي", "الأكسجين", "الصيدلية", "الأدوية", "معالجات كثيفة", "غرفة الأطفال الجديدة علوي"
+  ],
+  "🏢 الإدارة والخدمات": [
+    "الاستقبال", "قسم الإداري", "الإدارة الجديدة", "الإدارة الجديدة علوي", "تعيين جديد", "رشا جمال عبده بيومي", "سهير أحمد بيومي"
+  ],
+  "🔧 الصيانة والخدمات الفنية": [
+    "صيانة الأجهزة", "الطب الصناعي", "مخزن المهام", "مشرف نفايات خطرة", "الكهرباء", "السباكة"
+  ],
+  "🌿 الخدمات العامة والبيئة": [
+    "الطرق والأرصفة", "الحدائق والتشجير", "الخياطة", "المكتبة", "مبنى التموين الأرضي", "الدور الثاني علوي", "الأئمة المصلى"
+  ],
+  "🛡️ الجودة والسلامة": [
+    "السلامة والصحة", "الجودة والمكافحة", "الأمن والأمان", "مكتب مراقبة", "الإذاعة الداخلية"
+  ],
+  "🏨 المباني والأجنحة": [
+    "الرعاية الوسيطة", "عيادة مركزة", "عمليات الرمد", "الشلال", "الشنال", "مبنى الباطنة", "مبنى الرياضة", "المصلحة", "المصلى"
+  ]
 };
-const COLORS={"مديرية الأمن والأقسام":"#2E9DB0","إدارة المحور":"#7DC242","إدارة الكراكات":"#1e7a8a","المديرية المالية":"#f59e0b","عقد الخدمات":"#5fa030","مستشفى الخير والبركة":"#ef4444","مدارس الصعيد":"#f97316","البراريم":"#8b5cf6"};
+const COLORS={
+  "🚨 الطوارئ والإسعاف":"#ef4444",
+  "🏥 العمليات والجراحة":"#2E9DB0",
+  "👶 النساء والأطفال":"#ec4899",
+  "🔬 التشخيص والمختبرات":"#8b5cf6",
+  "💊 العلاج والتأهيل":"#7DC242",
+  "🏢 الإدارة والخدمات":"#1e7a8a",
+  "🔧 الصيانة والخدمات الفنية":"#f59e0b",
+  "🌿 الخدمات العامة والبيئة":"#5fa030",
+  "🛡️ الجودة والسلامة":"#f97316",
+  "🏨 المباني والأجنحة":"#3b82f6"
+};
 
 let apiUrl=localStorage.getItem('co_api')||'';
 let formLink=localStorage.getItem('co_form')||'';
@@ -492,7 +620,10 @@ window.onload=()=>{
     if(el&&cols[k])el.value=cols[k];
   });
   document.getElementById('workersDate').textContent='اليوم: '+new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  renderQR();
+  loadSectors();
+  loadSectorSelect();
+  renderManageList();
+
   if(apiUrl)loadData();
   else updateBanner(false);
 };
@@ -628,7 +759,269 @@ function updateWorkers(rows,today,sc){
   }).join('');
 }
 
-// QR
+// =================== FILE UPLOAD ===================
+let parsedFileData = [];
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if(file) handleFile(file);
+}
+
+function handleFile(file) {
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'csv') {
+    const reader = new FileReader();
+    reader.onload = e => parseCSV(e.target.result);
+    reader.readAsText(file, 'UTF-8');
+  } else if(ext === 'xlsx' || ext === 'xls') {
+    // Use SheetJS from CDN
+    if(typeof XLSX === 'undefined') {
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', () => parseExcel(file));
+    } else {
+      parseExcel(file);
+    }
+  } else {
+    alert('الملف غير مدعوم — استخدم Excel أو CSV');
+  }
+}
+
+function loadScript(src, cb) {
+  const s = document.createElement('script');
+  s.src = src; s.onload = cb;
+  document.head.appendChild(s);
+}
+
+function parseExcel(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    processRawData(json);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+  processRawData(lines);
+}
+
+function processRawData(rows) {
+  if(!rows || rows.length < 2) { alert('الملف فاضي أو فيه صف واحد بس'); return; }
+  parsedFileData = rows;
+  const headers = rows[0];
+
+  // Populate column picker
+  const cp = document.getElementById('colPicker');
+  cp.innerHTML = headers.map((h,i) => `<option value="${i}">${h||'عمود '+(i+1)}</option>`).join('');
+
+  // Populate sector picker
+  const fs = document.getElementById('fileSector');
+  fs.innerHTML = Object.keys(SECTORS).map(s=>`<option value="${s}">${s}</option>`).join('');
+
+  // Show preview table
+  renderFileTable(rows, 0);
+  document.getElementById('filePreview').style.display = 'block';
+  document.getElementById('fileStats').textContent = `📊 ${rows.length-1} صف — ${headers.length} عمود`;
+  document.getElementById('dropZone').style.borderColor = 'var(--green)';
+
+  cp.onchange = () => renderFileTable(rows, parseInt(cp.value));
+}
+
+function renderFileTable(rows, colIdx) {
+  const headers = rows[0];
+  const preview = rows.slice(0, 8);
+  const html = `<table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <thead><tr>${headers.map((h,i)=>`<th style="padding:7px 10px;background:var(--s2);border:1px solid var(--border);color:${i===colIdx?'var(--teal)':'var(--muted)'};font-weight:700;">${h||'—'} ${i===colIdx?'✓':''}</th>`).join('')}</tr></thead>
+    <tbody>${preview.slice(1).map(r=>`<tr>${r.map((c,i)=>`<td style="padding:6px 10px;border:1px solid var(--border);background:${i===colIdx?'var(--teal)10':'#fff'};font-weight:${i===colIdx?'700':'400'};color:var(--text);">${c||'—'}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+  document.getElementById('fileTable').innerHTML = html;
+}
+
+function importFromFile() {
+  const colIdx = parseInt(document.getElementById('colPicker').value);
+  const sector = document.getElementById('fileSector').value;
+  if(!parsedFileData.length) { alert('ملفش محمّل'); return; }
+
+  const sites = parsedFileData.slice(1)
+    .map(r => (r[colIdx]||'').toString().trim())
+    .filter(s => s && s !== '—');
+
+  if(!sites.length) { alert('مفيش بيانات في العمود ده'); return; }
+
+  let added = 0, skipped = 0;
+  sites.forEach(site => {
+    if(!SECTORS[sector]) SECTORS[sector] = [];
+    if(!SECTORS[sector].includes(site)) { SECTORS[sector].push(site); added++; }
+    else skipped++;
+  });
+
+  saveSectors();
+  renderManageList();
+  renderQR();
+  document.getElementById('filePreview').style.display = 'none';
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  document.getElementById('fileInput').value = '';
+  parsedFileData = [];
+  showToast(`✅ تم إضافة ${added} موقع${skipped?' ('+skipped+' موجود مسبقاً)':''}`);
+}
+
+function loadSectorSelect() {
+  ['newSiteSector','importSector'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = Object.keys(SECTORS).map(s => `<option value="${s}">${s}</option>`).join('');
+  });
+}
+
+function addSite() {
+  const name = document.getElementById('newSiteName').value.trim();
+  const sector = document.getElementById('newSiteSector').value;
+  if(!name) { alert('اكتب اسم الموقع الأول'); return; }
+  if(!SECTORS[sector]) SECTORS[sector] = [];
+  if(SECTORS[sector].includes(name)) { alert('الموقع موجود بالفعل!'); return; }
+  SECTORS[sector].push(name);
+  saveSectors();
+  document.getElementById('newSiteName').value = '';
+  renderManageList();
+  renderQR();
+  showToast(`✅ تم إضافة "${name}" بنجاح`);
+}
+
+function addSector() {
+  const name = document.getElementById('newSectorName').value.trim();
+  if(!name) { alert('اكتب اسم القطاع الأول'); return; }
+  if(SECTORS[name]) { alert('القطاع موجود بالفعل!'); return; }
+  SECTORS[name] = [];
+  // assign a color
+  const palette = ['#2E9DB0','#7DC242','#ef4444','#8b5cf6','#f59e0b','#f97316','#ec4899','#3b82f6','#1e7a8a','#5fa030'];
+  COLORS[name] = palette[Object.keys(SECTORS).length % palette.length];
+  saveSectors();
+  loadSectorSelect();
+  renderManageList();
+  document.getElementById('newSectorName').value = '';
+  showToast(`✅ تم إضافة قطاع "${name}"`);
+}
+
+function deleteSite(sector, site) {
+  if(!confirm(`حذف "${site}"؟`)) return;
+  SECTORS[sector] = SECTORS[sector].filter(s => s !== site);
+  saveSectors();
+  renderManageList();
+  renderQR();
+  showToast(`🗑️ تم حذف "${site}"`);
+}
+
+function deleteSector(sector) {
+  if(!confirm(`حذف قطاع "${sector}" وكل مواقعه (${SECTORS[sector].length} موقع)؟`)) return;
+  delete SECTORS[sector];
+  delete COLORS[sector];
+  saveSectors();
+  loadSectorSelect();
+  renderManageList();
+  renderQR();
+  showToast(`🗑️ تم حذف القطاع`);
+}
+
+function saveSectors() {
+  localStorage.setItem('co_sectors', JSON.stringify(SECTORS));
+  localStorage.setItem('co_colors', JSON.stringify(COLORS));
+}
+
+function loadSectors() {
+  const s = localStorage.getItem('co_sectors');
+  const c = localStorage.getItem('co_colors');
+  if(s) { const parsed = JSON.parse(s); Object.keys(parsed).forEach(k => SECTORS[k] = parsed[k]); }
+  if(c) { const parsed = JSON.parse(c); Object.keys(parsed).forEach(k => COLORS[k] = parsed[k]); }
+}
+
+function renderManageList(filter='') {
+  const el = document.getElementById('manageList');
+  const lf = filter.toLowerCase();
+  let html = '';
+  let total = 0;
+  for(const [sec, sites] of Object.entries(SECTORS)) {
+    const filtered = sites.filter(s => !lf || s.toLowerCase().includes(lf) || sec.toLowerCase().includes(lf));
+    total += sites.length;
+    html += `
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border-radius:8px 8px 0 0;border:1px solid var(--border);">
+        <span style="font-size:12px;font-weight:900;color:${COLORS[sec]||'var(--teal)'};">${sec} <span style="color:var(--muted);font-weight:400;">(${sites.length})</span></span>
+        <button class="btn-sm" style="color:#ef4444;border-color:#ef444440;" onclick="deleteSector('${sec.replace(/'/g,"\\'")}')">🗑️ حذف القطاع</button>
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;">
+        ${filtered.length === 0 ? '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;">لا توجد نتائج</div>' :
+          filtered.map(site => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:${COLORS[sec]||'var(--teal)'};flex-shrink:0;"></div>
+              <span style="font-size:12px;font-weight:600;color:var(--text);">${site}</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-sm" onclick="quickQR('${site.replace(/'/g,"\\'")}')">📱 QR</button>
+              <button class="btn-sm" style="color:#ef4444;border-color:#ef444440;" onclick="deleteSite('${sec.replace(/'/g,"\\'")}','${site.replace(/'/g,"\\'")}')">🗑️</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  el.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">إجمالي المواقع: <strong style="color:var(--teal);">${total}</strong></div>` + html;
+}
+
+function filterManage(v) { renderManageList(v); }
+
+function quickQR(site) {
+  go('pgQR', document.querySelectorAll('.tab')[1]);
+  document.querySelector('.search-box input').value = site;
+  filterQR(site);
+}
+
+function exportSites() {
+  const data = JSON.stringify({sectors: SECTORS, colors: COLORS}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'cleanops-sites.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importSites() {
+  loadSectorSelect();
+  const m = document.getElementById('importModal');
+  m.style.display = 'flex';
+}
+
+function closeImport() {
+  document.getElementById('importModal').style.display = 'none';
+}
+
+function doImport() {
+  const text = document.getElementById('importText').value.trim();
+  const sector = document.getElementById('importSector').value;
+  if(!text || !sector) { alert('اكتب المواقع واختار القطاع'); return; }
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let added = 0;
+  lines.forEach(site => {
+    if(!SECTORS[sector].includes(site)) { SECTORS[sector].push(site); added++; }
+  });
+  saveSectors();
+  renderManageList();
+  renderQR();
+  closeImport();
+  showToast(`✅ تم إضافة ${added} موقع`);
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--teal);color:#fff;padding:10px 24px;border-radius:30px;font-size:13px;font-weight:700;font-family:Cairo,sans-serif;z-index:999;box-shadow:0 4px 16px #00000030;transition:opacity .3s;';
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
+}
 let qrN=0;
 function makeQRUrl(site){
   const base=formLink||'https://www.appsheet.com/start/2de8f6f6-98d8-4ce8-a3d5-3ef5ace5dc3d';
@@ -689,4 +1082,4 @@ function copyCode(){
 }
 </script>
 </body>
-</html> 
+</html>
