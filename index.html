@@ -366,7 +366,7 @@ body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-h
         <thead>
           <tr>
             <th>الوقت</th><th>الموقع</th><th>المشرف</th><th>العمال</th>
-            <th>الزي</th><th>روائح</th><th>تسريبات</th><th>صيانة</th><th>التقييم</th><th>الحالة</th>
+            <th>الزي</th><th>روائح</th><th>تسريبات</th><th>صيانة</th><th>التقييم</th><th>الحالة</th><th>الصورة</th>
           </tr>
         </thead>
         <tbody><tr><td colspan="10" style="text-align:center;color:var(--muted);">لا توجد بيانات</td></tr></tbody>
@@ -755,11 +755,122 @@ function updateWorkers(rows,today,sc){
     const score=parseFloat(r[C.score()]);
     const sc2=score>=4?'var(--green-dark)':score>=2?'#d97706':'#ef4444';
     const done=r['هل تم تنفيذ المهمة بالكامل؟']==='نعم';
-    return`<tr><td style="white-space:nowrap;">${fmt(r[C.time()])}</td><td>${r[C.site()]||'—'}</td><td>${r[C.sup()]||'—'}</td><td>${r[C.workers()]||'—'}</td><td>${r['التزام العمال بزي الشركه ؟']==='نعم'?'✅':'❌'}</td><td>${r[C.smell()]==='نعم'?'⚠️':'—'}</td><td>${r[C.leak()]==='نعم'?'⚠️':'—'}</td><td>${r[C.fault()]==='نعم'?'🔧':'—'}</td><td style="color:${sc2};font-weight:700;">${isNaN(score)?'—':score+'/5'}</td><td>${done?'<span class="badge ok">✅ منجز</span>':'<span class="badge err">❌ ناقص</span>'}</td></tr>`;
+    return`<tr><td style="white-space:nowrap;">${fmt(r[C.time()])}</td><td>${r[C.site()]||'—'}</td><td>${r[C.sup()]||'—'}</td><td>${r[C.workers()]||'—'}</td><td>${r['التزام العمال بزي الشركه ؟']==='نعم'?'✅':'❌'}</td><td>${r[C.smell()]==='نعم'?'⚠️':'—'}</td><td>${r[C.leak()]==='نعم'?'⚠️':'—'}</td><td>${r[C.fault()]==='نعم'?'🔧':'—'}</td><td style="color:${sc2};font-weight:700;">${isNaN(score)?'—':score+'/5'}</td>      <td>${done?'<span class="badge ok">✅ منجز</span>':'<span class="badge err">❌ ناقص</span>'}</td>
+      <td>${r['صوره الموقع']?`<img src="${r['صوره الموقع']}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${r['صوره الموقع']}','_blank')" />`:'—'}</td></tr>`;
   }).join('');
 }
 
-// =================== MANAGE SITES ===================
+// =================== FILE UPLOAD ===================
+let parsedFileData = [];
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if(file) handleFile(file);
+}
+
+function handleFile(file) {
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'csv') {
+    const reader = new FileReader();
+    reader.onload = e => parseCSV(e.target.result);
+    reader.readAsText(file, 'UTF-8');
+  } else if(ext === 'xlsx' || ext === 'xls') {
+    // Use SheetJS from CDN
+    if(typeof XLSX === 'undefined') {
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', () => parseExcel(file));
+    } else {
+      parseExcel(file);
+    }
+  } else {
+    alert('الملف غير مدعوم — استخدم Excel أو CSV');
+  }
+}
+
+function loadScript(src, cb) {
+  const s = document.createElement('script');
+  s.src = src; s.onload = cb;
+  document.head.appendChild(s);
+}
+
+function parseExcel(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    processRawData(json);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+  processRawData(lines);
+}
+
+function processRawData(rows) {
+  if(!rows || rows.length < 2) { alert('الملف فاضي أو فيه صف واحد بس'); return; }
+  parsedFileData = rows;
+  const headers = rows[0];
+
+  // Populate column picker
+  const cp = document.getElementById('colPicker');
+  cp.innerHTML = headers.map((h,i) => `<option value="${i}">${h||'عمود '+(i+1)}</option>`).join('');
+
+  // Populate sector picker
+  const fs = document.getElementById('fileSector');
+  fs.innerHTML = Object.keys(SECTORS).map(s=>`<option value="${s}">${s}</option>`).join('');
+
+  // Show preview table
+  renderFileTable(rows, 0);
+  document.getElementById('filePreview').style.display = 'block';
+  document.getElementById('fileStats').textContent = `📊 ${rows.length-1} صف — ${headers.length} عمود`;
+  document.getElementById('dropZone').style.borderColor = 'var(--green)';
+
+  cp.onchange = () => renderFileTable(rows, parseInt(cp.value));
+}
+
+function renderFileTable(rows, colIdx) {
+  const headers = rows[0];
+  const preview = rows.slice(0, 8);
+  const html = `<table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <thead><tr>${headers.map((h,i)=>`<th style="padding:7px 10px;background:var(--s2);border:1px solid var(--border);color:${i===colIdx?'var(--teal)':'var(--muted)'};font-weight:700;">${h||'—'} ${i===colIdx?'✓':''}</th>`).join('')}</tr></thead>
+    <tbody>${preview.slice(1).map(r=>`<tr>${r.map((c,i)=>`<td style="padding:6px 10px;border:1px solid var(--border);background:${i===colIdx?'var(--teal)10':'#fff'};font-weight:${i===colIdx?'700':'400'};color:var(--text);">${c||'—'}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+  document.getElementById('fileTable').innerHTML = html;
+}
+
+function importFromFile() {
+  const colIdx = parseInt(document.getElementById('colPicker').value);
+  const sector = document.getElementById('fileSector').value;
+  if(!parsedFileData.length) { alert('ملفش محمّل'); return; }
+
+  const sites = parsedFileData.slice(1)
+    .map(r => (r[colIdx]||'').toString().trim())
+    .filter(s => s && s !== '—');
+
+  if(!sites.length) { alert('مفيش بيانات في العمود ده'); return; }
+
+  let added = 0, skipped = 0;
+  sites.forEach(site => {
+    if(!SECTORS[sector]) SECTORS[sector] = [];
+    if(!SECTORS[sector].includes(site)) { SECTORS[sector].push(site); added++; }
+    else skipped++;
+  });
+
+  saveSectors();
+  renderManageList();
+  renderQR();
+  document.getElementById('filePreview').style.display = 'none';
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  document.getElementById('fileInput').value = '';
+  parsedFileData = [];
+  showToast(`✅ تم إضافة ${added} موقع${skipped?' ('+skipped+' موجود مسبقاً)':''}`);
+}
+
 function loadSectorSelect() {
   ['newSiteSector','importSector'].forEach(id => {
     const el = document.getElementById(id);
@@ -973,4 +1084,3 @@ function copyCode(){
 </script>
 </body>
 </html>
-    
