@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CleanOps — I-BUILD</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -225,17 +226,43 @@ pre{background:#080a08;border:1px solid var(--border);border-radius:9px;padding:
       <button class="btn bg sm" onclick="renderQR()">🔄 تحديث</button>
     </div>
   </div>
+
+  <!-- EXCEL UPLOAD -->
+  <div class="card" style="border-color:#00c8d455">
+    <div class="ctitle">📂 رفع ملف Excel أو CSV — توليد QR تلقائي</div>
+    <div id="drop-zone"
+      onclick="document.getElementById('xl-file').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--cyan)'"
+      ondragleave="this.style.borderColor='var(--border)'"
+      ondrop="handleDrop(event)"
+      style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px">
+      <div style="font-size:32px;margin-bottom:6px">📁</div>
+      <div style="font-weight:700;margin-bottom:3px">اسحب الملف هنا أو اضغط للاختيار</div>
+      <div style="font-size:11px;color:var(--grey)">يدعم: Excel (.xlsx, .xls) و CSV</div>
+      <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(this.files[0])">
+    </div>
+    <div id="xl-preview" style="display:none">
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
+        <div style="flex:1;min-width:160px"><label>عمود أسماء المواقع</label><select id="xl-col"></select></div>
+        <div style="flex:1;min-width:160px"><label>القطاع</label><select id="xl-sec"><option value="">-- اختر --</option></select></div>
+        <button class="btn bg" onclick="importFromExcel()">✅ استيراد وتوليد QR</button>
+      </div>
+      <div id="xl-sample" style="font-size:11px;color:var(--grey);padding:8px;background:var(--card2);border-radius:7px"></div>
+    </div>
+  </div>
+
   <div class="card">
-    <div class="ctitle">🔗 رابط النموذج</div>
+    <div class="ctitle">🔗 رابط النموذج (اختياري)</div>
     <div style="display:flex;gap:8px">
       <input type="url" id="form-url" placeholder="https://form.appsheet.com/...">
       <button class="btn bg" onclick="saveUrl()">💾 حفظ</button>
     </div>
     <p style="font-size:11px;color:var(--grey);margin-top:7px">💡 كل QR سيفتح النموذج مع اسم الموقع تلقائياً</p>
   </div>
+
   <div id="qr-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
   <div class="sw"><input type="text" id="qr-search" placeholder="ابحث عن موقع..." oninput="renderQR()"></div>
-  <div id="qr-grid" class="qgrid"><div class="empty" style="grid-column:1/-1"><div class="ei">📱</div><p>أضف مواقع أولاً</p></div></div>
+  <div id="qr-grid" class="qgrid"><div class="empty" style="grid-column:1/-1"><div class="ei">📱</div><p>ارفع ملف Excel أو أضف مواقع من صفحة المواقع</p></div></div>
 </div>
 
 <!-- WORKERS -->
@@ -698,6 +725,93 @@ function renderWorkers(){
   document.getElementById('w-locs').innerHTML=locs.length
     ?locs.map(l=>`<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px">📍 ${l}</div>`).join('')
     :'<div class="empty"><p>لا بيانات</p></div>';
+}
+
+
+// ═══════════════ EXCEL / CSV UPLOAD ═══════════════
+let xlData = [], xlHeaders = [];
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  const reader = new FileReader();
+
+  if (name.endsWith('.csv')) {
+    reader.onload = function(e) {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      xlHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
+      xlData = lines.slice(1).map(l => l.split(',').map(v => v.trim().replace(/^"|"$/g,'')));
+      showXLPreview();
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else {
+    reader.onload = function(e) {
+      try {
+        const wb = XLSX.read(e.target.result, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, {header:1});
+        if (!json.length) return alert('الملف فارغ');
+        xlHeaders = json[0].map(h => String(h||'').trim());
+        xlData = json.slice(1).filter(r => r.some(c => c));
+        showXLPreview();
+      } catch(err) { alert('خطأ في قراءة الملف: ' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function showXLPreview() {
+  const prev = document.getElementById('xl-preview');
+  const colSel = document.getElementById('xl-col');
+  const secSel = document.getElementById('xl-sec');
+
+  // Fill columns
+  colSel.innerHTML = xlHeaders.map((h,i) => `<option value="${i}">${h}</option>`).join('');
+
+  // Fill sectors
+  secSel.innerHTML = '<option value="">-- اختر --</option>';
+  D.secs.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; secSel.appendChild(o); });
+
+  // Show sample
+  const sample = xlData.slice(0,5).map(r => r[0]).filter(Boolean);
+  document.getElementById('xl-sample').innerHTML =
+    `<b>معاينة أول ${sample.length} صفوف:</b> ${sample.join(' — ')} ${xlData.length > 5 ? `... وأكثر (${xlData.length} إجمالاً)` : ''}`;
+
+  prev.style.display = 'block';
+  // Animate drop zone
+  document.getElementById('drop-zone').style.borderColor = 'var(--green)';
+}
+
+function importFromExcel() {
+  const colIdx = parseInt(document.getElementById('xl-col').value);
+  const sector = document.getElementById('xl-sec').value;
+  if (!sector) return alert('اختر القطاع');
+  if (!xlData.length) return alert('لا توجد بيانات');
+
+  let added = 0;
+  xlData.forEach(row => {
+    const name = String(row[colIdx]||'').trim();
+    if (!name) return;
+    if (!D.locs.find(l => l.name === name)) {
+      D.locs.push({id: Date.now()+Math.random(), name, sector});
+      added++;
+    }
+  });
+
+  if (!added) return alert('لا توجد مواقع جديدة — ربما كلها موجودة بالفعل');
+  sv(); renderQR(); renderQRFilters(); renderL();
+  document.getElementById('xl-preview').style.display = 'none';
+  document.getElementById('drop-zone').style.borderColor = 'var(--border)';
+  xlData = []; xlHeaders = [];
+  alert(`✅ تم إضافة ${added} موقع وتوليد QR Codes!`);
 }
 
 // ═══════════════ SETTINGS ═══════════════
