@@ -1024,9 +1024,9 @@ function showToast(msg) {
   setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
 }
 let qrN=0;
-function makeQRUrl(site){
+function makeQRUrl(site,sector=''){
   const base=formLink||'https://www.appsheet.com/start/2de8f6f6-98d8-4ce8-a3d5-3ef5ace5dc3d';
-  return base.includes('appsheet.com')?base:base+(base.includes('?')?'&':'?')+'usp=pp_url&entry.2005620554='+encodeURIComponent(site);
+  return base.includes('appsheet.com')?base:base+(base.includes('?')?'&':'?')+'site='+encodeURIComponent(site)+(sector?'&sector='+encodeURIComponent(sector):'');
 }
 
 function renderQR(filter=''){
@@ -1045,7 +1045,7 @@ function renderQR(filter=''){
       card.innerHTML=`<div class="qr-wrap" id="${id}"><span class="qr-num">${num}</span></div><div class="site-name">${site}</div><div class="site-tag">${sec}</div><button class="btn-sm" onclick="printOne('${id}','${site.replace(/'/g,"\\'")}')">🖨️ طباعة</button>`;
       grid.appendChild(card);
       setTimeout(()=>{
-        try{new QRCode(document.getElementById(id),{text:makeQRUrl(site),width:98,height:98,colorDark:'#1a3a42',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+        try{new QRCode(document.getElementById(id),{text:makeQRUrl(site,sec),width:98,height:98,colorDark:'#1a3a42',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
       },num*12);
     });
   }
