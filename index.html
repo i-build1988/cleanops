@@ -3,779 +3,449 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CleanOps Dashboard — I-BUILD</title>
+<title>CleanOps — I-BUILD</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root {
-  --black: #0a0c0a;
-  --dark: #0f1410;
-  --card: #131a14;
-  --card2: #182019;
-  --border: #1e2e1f;
-  --green: #7ec820;
-  --green2: #5aab00;
-  --cyan: #00c8d4;
-  --cyan2: #00a8b8;
-  --white: #f0f4f0;
-  --grey: #7a8f7b;
-  --warn: #f5a623;
-  --danger: #e84040;
-  --radius: 14px;
-  --glow-green: 0 0 18px #7ec82044;
-  --glow-cyan: 0 0 18px #00c8d444;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#0a0c0a;--card:#131a14;--card2:#182019;--border:#1e2e1f;
+  --green:#7ec820;--green2:#5aab00;--cyan:#00c8d4;
+  --white:#f0f4f0;--grey:#7a8f7b;--warn:#f5a623;--danger:#e84040;
+  --r:12px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Cairo', sans-serif;
-  background: var(--black);
-  color: var(--white);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+body{font-family:'Cairo',sans-serif;background:var(--black);color:var(--white);min-height:100vh}
 
-/* ─── HEADER ─── */
-header {
-  background: linear-gradient(135deg, #0a0c0a 60%, #0d1a0e);
-  border-bottom: 1px solid #1e3020;
-  padding: 0 28px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 20px #00000088;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.brand-logo {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, var(--cyan), var(--green));
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 20px; color: #000;
-  box-shadow: var(--glow-green);
-}
-.brand-text { line-height: 1.1; }
-.brand-name { font-size: 18px; font-weight: 900; color: var(--white); letter-spacing: 2px; }
-.brand-sub { font-size: 11px; color: var(--cyan); letter-spacing: 1px; }
-.nav-tabs { display: flex; gap: 4px; }
-.nav-tab {
-  background: none; border: none;
-  color: var(--grey); padding: 8px 14px;
-  border-radius: 8px; cursor: pointer;
-  font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700;
-  transition: all .2s; white-space: nowrap;
-}
-.nav-tab:hover { background: #1e2e1f; color: var(--white); }
-.nav-tab.active {
-  background: linear-gradient(135deg, var(--green2), var(--green));
-  color: #000; box-shadow: var(--glow-green);
-}
-.header-time {
-  font-size: 12px; color: var(--grey);
-  background: var(--card); border: 1px solid var(--border);
-  padding: 6px 12px; border-radius: 8px;
-}
+/* NAV */
+nav{background:linear-gradient(135deg,#0a0c0a 60%,#0d1a0e);border-bottom:1px solid #1e3020;
+  padding:0 16px;height:60px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 20px #000a}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--cyan),var(--green));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:16px;color:#000}
+.logo-text{line-height:1.1}
+.logo-name{font-size:16px;font-weight:900;letter-spacing:2px}
+.logo-sub{font-size:10px;color:var(--cyan)}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{background:none;border:none;color:var(--grey);padding:7px 10px;border-radius:7px;
+  cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;transition:all .2s}
+.tab:hover{background:#1e2e1f;color:var(--white)}
+.tab.on{background:linear-gradient(135deg,var(--green2),var(--green));color:#000}
 
-/* ─── PAGES ─── */
-.page { display: none; padding: 24px; max-width: 1300px; margin: 0 auto; }
-.page.active { display: block; animation: fadeIn .3s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+/* PAGES */
+.pg{display:none;padding:20px;max-width:1200px;margin:0 auto;animation:fi .25s ease}
+.pg.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ─── PAGE HEADER ─── */
-.page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
-}
-.page-title {
-  font-size: 24px; font-weight: 900;
-  background: linear-gradient(90deg, var(--green), var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
+/* TITLES */
+.ptitle{font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--green),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+.row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px}
 
-/* ─── CARDS ─── */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px; margin-bottom: 16px;
-  position: relative; overflow: hidden;
-}
-.card::before {
-  content: '';
-  position: absolute; top: 0; right: 0;
-  width: 3px; height: 100%;
-  background: linear-gradient(180deg, var(--green), transparent);
-}
-.card-title {
-  font-size: 15px; font-weight: 700; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px;
-  color: var(--white);
-}
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;
+  background:linear-gradient(180deg,var(--green),transparent)}
+.ctitle{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
 
-/* ─── STAT CARDS ─── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-  gap: 14px; margin-bottom: 20px;
-}
-.stat-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 16px; text-align: center;
-  transition: all .3s; cursor: default;
-  position: relative; overflow: hidden;
-}
-.stat-card::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--green), transparent);
-  opacity: 0; transition: opacity .3s;
-}
-.stat-card:hover { border-color: var(--green); transform: translateY(-3px); box-shadow: var(--glow-green); }
-.stat-card:hover::after { opacity: 1; }
-.stat-icon { font-size: 30px; margin-bottom: 8px; }
-.stat-value { font-size: 36px; font-weight: 900; color: var(--green); line-height: 1; }
-.stat-value.cyan { color: var(--cyan); }
-.stat-value.warn { color: var(--warn); }
-.stat-value.danger { color: var(--danger); }
-.stat-label { font-size: 12px; color: var(--grey); margin-top: 6px; }
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;text-align:center;transition:all .3s;cursor:default}
+.sc:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 0 18px #7ec82033}
+.si{font-size:28px;margin-bottom:6px}
+.sv{font-size:32px;font-weight:900;color:var(--green)}
+.sv.c{color:var(--cyan)}.sv.w{color:var(--warn)}.sv.d{color:var(--danger)}
+.sl{font-size:11px;color:var(--grey);margin-top:4px}
 
-/* ─── BUTTONS ─── */
-.btn {
-  border: none; border-radius: 8px;
-  padding: 10px 18px;
-  font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700;
-  cursor: pointer; transition: all .2s;
-  display: inline-flex; align-items: center; gap: 6px;
-  white-space: nowrap;
-}
-.btn-green {
-  background: linear-gradient(135deg, var(--green2), var(--green));
-  color: #000; box-shadow: var(--glow-green);
-}
-.btn-green:hover { transform: translateY(-1px); box-shadow: 0 4px 20px #7ec82066; }
-.btn-cyan {
-  background: linear-gradient(135deg, var(--cyan2), var(--cyan));
-  color: #000;
-}
-.btn-cyan:hover { transform: translateY(-1px); }
-.btn-ghost {
-  background: transparent; border: 1px solid var(--border);
-  color: var(--grey);
-}
-.btn-ghost:hover { border-color: var(--green); color: var(--green); }
-.btn-danger { background: #e8404022; border: 1px solid #e8404044; color: var(--danger); }
-.btn-danger:hover { background: var(--danger); color: #fff; }
-.btn-sm { padding: 7px 12px; font-size: 12px; }
-.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+/* BTNS */
+.btn{border:none;border-radius:7px;padding:9px 16px;font-family:'Cairo',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.bg{background:linear-gradient(135deg,var(--green2),var(--green));color:#000}
+.bg:hover{transform:translateY(-1px);box-shadow:0 4px 16px #7ec82055}
+.bc{background:transparent;border:1px solid var(--border);color:var(--grey)}
+.bc:hover{border-color:var(--green);color:var(--green)}
+.bd{background:#e8404022;border:1px solid #e8404044;color:var(--danger)}
+.bd:hover{background:var(--danger);color:#fff}
+.sm{padding:6px 12px;font-size:12px}
+.bgrp{display:flex;gap:8px;flex-wrap:wrap}
 
-/* ─── INPUTS ─── */
-input, select, textarea {
-  background: var(--card2); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--white);
-  padding: 10px 14px; font-family: 'Cairo', sans-serif;
-  font-size: 14px; width: 100%; outline: none;
-  transition: border-color .2s; direction: rtl;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: var(--green); box-shadow: 0 0 0 3px #7ec82011;
-}
-input::placeholder { color: var(--grey); }
-label { font-size: 13px; color: var(--grey); margin-bottom: 6px; display: block; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+/* INPUTS */
+input,select,textarea{background:var(--card2);border:1px solid var(--border);border-radius:7px;
+  color:var(--white);padding:9px 13px;font-family:'Cairo',sans-serif;font-size:13px;
+  width:100%;outline:none;transition:border-color .2s;direction:rtl}
+input:focus,select:focus,textarea:focus{border-color:var(--green)}
+input::placeholder{color:var(--grey)}
+label{font-size:12px;color:var(--grey);margin-bottom:5px;display:block}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
 
-/* ─── ALERT ─── */
-.alert {
-  padding: 12px 16px; border-radius: 10px;
-  font-size: 13px; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 10px;
-}
-.alert-warn { background: #f5a62315; border: 1px solid #f5a62330; color: var(--warn); }
-.alert-success { background: #7ec82015; border: 1px solid #7ec82030; color: var(--green); }
-.alert-cyan { background: #00c8d415; border: 1px solid #00c8d430; color: var(--cyan); }
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--card2);padding:9px 12px;text-align:right;color:var(--grey);
+  font-size:11px;font-weight:700;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid #1a241b}
+tr:hover td{background:#182019}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bok{background:#7ec82020;color:var(--green);border:1px solid #7ec82030}
+.bwn{background:#f5a62320;color:var(--warn);border:1px solid #f5a62330}
+.bbd{background:#e8404020;color:var(--danger);border:1px solid #e8404030}
 
-/* ─── TABLE ─── */
-.table-wrap { overflow-x: auto; border-radius: 10px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th {
-  background: var(--card2); padding: 10px 14px;
-  text-align: right; color: var(--grey);
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
-}
-td { padding: 11px 14px; border-bottom: 1px solid #1a241b; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #182019; }
-.badge {
-  display: inline-block; padding: 3px 10px;
-  border-radius: 20px; font-size: 11px; font-weight: 700;
-}
-.badge-ok { background: #7ec82020; color: var(--green); border: 1px solid #7ec82030; }
-.badge-warn { background: #f5a62320; color: var(--warn); border: 1px solid #f5a62330; }
-.badge-bad { background: #e8404020; color: var(--danger); border: 1px solid #e8404030; }
-.badge-cyan { background: #00c8d420; color: var(--cyan); border: 1px solid #00c8d430; }
+/* QR */
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px;text-align:center;transition:all .3s}
+.qcard:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 0 18px #7ec82033}
+.qcard canvas,.qcard img{border-radius:6px;border:2px solid var(--green)}
+.qsec{font-size:10px;color:var(--cyan);margin-bottom:3px;font-weight:700}
+.qname{font-size:12px;font-weight:700;margin-bottom:10px}
+.qact{display:flex;gap:5px;justify-content:center}
 
-/* ─── QR GRID ─── */
-.qr-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 16px;
-}
-.qr-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px; text-align: center;
-  transition: all .3s;
-}
-.qr-card:hover {
-  border-color: var(--green);
-  transform: translateY(-3px);
-  box-shadow: var(--glow-green);
-}
-.qr-img { margin: 0 auto 12px; display: flex; justify-content: center; }
-.qr-img canvas, .qr-img img { border-radius: 8px; border: 3px solid var(--green); }
-.qr-sector { font-size: 11px; color: var(--cyan); margin-bottom: 4px; font-weight: 700; }
-.qr-name { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
-.qr-actions { display: flex; gap: 6px; justify-content: center; }
+/* SEARCH */
+.sw{position:relative;margin-bottom:14px}
+.sw input{padding-right:40px}
+.sw::before{content:'🔍';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
 
-/* ─── SEARCH ─── */
-.search-wrap { position: relative; margin-bottom: 16px; }
-.search-wrap input { padding-right: 42px; }
-.search-icon {
-  position: absolute; right: 14px; top: 50%;
-  transform: translateY(-50%); color: var(--grey); font-size: 16px;
-  pointer-events: none;
-}
+/* STEP */
+.step{display:flex;gap:12px;padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:9px;margin-bottom:9px;align-items:flex-start}
+.snum{background:linear-gradient(135deg,var(--green2),var(--green));color:#000;
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:13px;flex-shrink:0}
+.stitle{font-weight:700;font-size:13px;margin-bottom:3px}
+.sdesc{font-size:12px;color:var(--grey)}
+code{background:#0a0c0a;border:1px solid var(--border);padding:2px 5px;
+  border-radius:3px;font-family:monospace;font-size:11px;color:var(--cyan)}
+pre{background:#080a08;border:1px solid var(--border);border-radius:9px;padding:12px;
+  overflow-x:auto;font-size:11px;line-height:1.7;color:#7ec820;direction:ltr;text-align:left;margin:9px 0}
 
-/* ─── STEP ─── */
-.step {
-  display: flex; gap: 14px;
-  padding: 16px; background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px; margin-bottom: 10px;
-  align-items: flex-start;
-}
-.step-num {
-  background: linear-gradient(135deg, var(--green2), var(--green));
-  color: #000; width: 30px; height: 30px;
-  border-radius: 50%; display: flex;
-  align-items: center; justify-content: center;
-  font-weight: 900; font-size: 14px; flex-shrink: 0;
-}
-.step-title { font-weight: 700; margin-bottom: 4px; font-size: 14px; }
-.step-desc { font-size: 12px; color: var(--grey); }
-code {
-  background: #0a0c0a; border: 1px solid var(--border);
-  padding: 2px 6px; border-radius: 4px;
-  font-family: monospace; font-size: 11px; color: var(--cyan);
-}
-pre {
-  background: #080a08; border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px;
-  overflow-x: auto; font-size: 12px; line-height: 1.7;
-  color: #7ec820; direction: ltr; text-align: left; margin: 10px 0;
-}
+/* ALERT */
+.alert{padding:11px 14px;border-radius:9px;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.aw{background:#f5a62315;border:1px solid #f5a62330;color:var(--warn)}
+.ag{background:#7ec82015;border:1px solid #7ec82030;color:var(--green)}
 
-/* ─── DIVIDER ─── */
-.divider {
-  height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
-  margin: 16px 0;
-}
+/* MODAL */
+.moverlay{display:none;position:fixed;inset:0;background:#000a;z-index:200;align-items:center;justify-content:center}
+.moverlay.on{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;max-width:460px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:14px;color:var(--green)}
 
-/* ─── SECTOR TAG ─── */
-.sector-tag {
-  display: inline-block; padding: 2px 8px;
-  border-radius: 4px; font-size: 11px; font-weight: 700;
-}
-
-/* ─── EMPTY ─── */
-.empty { text-align: center; padding: 36px; color: var(--grey); }
-.empty-icon { font-size: 44px; margin-bottom: 10px; }
-
-/* ─── DOT ─── */
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-.dot-red { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
-.dot-warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
-
-/* ─── MODAL ─── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: #00000099; z-index: 200;
-  align-items: center; justify-content: center;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; padding: 24px;
-  max-width: 480px; width: 90%; max-height: 80vh; overflow-y: auto;
-  box-shadow: 0 20px 60px #00000088;
-}
-.modal h3 { margin-bottom: 16px; color: var(--green); }
-
-/* ─── SCROLL ─── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--black); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-/* ─── CONN STATUS ─── */
-#conn-status {
-  margin-top: 10px; padding: 10px 14px;
-  border-radius: 8px; font-size: 13px; display: none;
-}
-
-/* ─── TWO COLS ─── */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 700px) {
-  .two-col, .form-row, .form-row.three { grid-template-columns: 1fr; }
-  .nav-tab span.hide { display: none; }
-  .header-time { display: none; }
-}
-
-/* ─── BAR ─── */
-.bar-wrap { margin-bottom: 14px; }
-.bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
-.bar-track { background: var(--card2); border-radius: 4px; height: 8px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
-
-/* ─── PRINT ─── */
-@media print {
-  header, .btn, .search-wrap, .alert { display: none !important; }
-  body { background: #fff; color: #000; }
-  .qr-card { border: 1px solid #ccc; break-inside: avoid; }
-  #page-qr { display: block !important; padding: 0; }
-  #page-dashboard, #page-workers, #page-locations, #page-setup { display: none !important; }
-}
-
-/* ─── GLOWING LINE ─── */
-.glow-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--green), var(--cyan), transparent);
-  margin: 20px 0; opacity: 0.5;
-}
-
-/* service badge icons */
-.service-grid {
-  display: grid; grid-template-columns: repeat(2,1fr); gap: 12px;
-}
-.service-item {
-  background: var(--card2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px;
-  display: flex; align-items: center; gap: 12px;
-  transition: all .2s;
-}
-.service-item:hover { border-color: var(--green); }
-.service-icon {
-  width: 44px; height: 44px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
-}
-.service-icon.green { background: linear-gradient(135deg, #2a4a10, #4a8010); }
-.service-icon.cyan { background: linear-gradient(135deg, #0a2a2a, #0a4848); }
-.service-name { font-size: 14px; font-weight: 700; }
-.service-desc { font-size: 11px; color: var(--grey); margin-top: 2px; }
+/* MISC */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dg{background:var(--green);box-shadow:0 0 6px var(--green)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.empty{text-align:center;padding:32px;color:var(--grey)}
+.ei{font-size:40px;margin-bottom:8px}
+.gl{height:1px;background:linear-gradient(90deg,transparent,var(--green),var(--cyan),transparent);margin:18px 0;opacity:.4}
+.svc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.si2{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px;
+  display:flex;align-items:center;gap:10px;transition:all .2s}
+.si2:hover{border-color:var(--green)}
+.ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ig{background:linear-gradient(135deg,#2a4a10,#4a8010)}
+.ic{background:linear-gradient(135deg,#0a2a2a,#0a4848)}
+.sn{font-size:13px;font-weight:700}
+.sd{font-size:11px;color:var(--grey);margin-top:2px}
+.bar{margin-bottom:12px}
+.bl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.bt{background:var(--card2);border-radius:3px;height:7px;overflow:hidden}
+.bf{height:100%;border-radius:3px;transition:width .5s}
+#conn-status{margin-top:9px;padding:9px;border-radius:7px;font-size:12px;display:none}
+@media(max-width:640px){.twocol,.fr,.fr3,.svc{grid-template-columns:1fr}.tabs .tab span{display:none}}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- ══ HEADER ══ -->
-<header>
-  <div class="brand">
-    <div class="brand-logo">iB</div>
-    <div class="brand-text">
-      <div class="brand-name">I-BUILD</div>
-      <div class="brand-sub">Facility Management — CleanOps</div>
+<nav>
+  <div class="logo">
+    <div class="logo-icon">iB</div>
+    <div class="logo-text">
+      <div class="logo-name">I-BUILD</div>
+      <div class="logo-sub">Facility Management — CleanOps</div>
     </div>
   </div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('dashboard')">📊 <span class="hide">Dashboard</span></button>
-    <button class="nav-tab" onclick="showPage('qr')">📱 <span class="hide">QR Codes</span></button>
-    <button class="nav-tab" onclick="showPage('workers')">👷 <span class="hide">العمال</span></button>
-    <button class="nav-tab" onclick="showPage('locations')">🏢 <span class="hide">المواقع</span></button>
-    <button class="nav-tab" onclick="showPage('setup')">⚙️ <span class="hide">الإعداد</span></button>
+  <div class="tabs" id="tabs">
+    <button class="tab on"  data-page="dashboard">📊 <span>Dashboard</span></button>
+    <button class="tab"     data-page="qr">📱 <span>QR Codes</span></button>
+    <button class="tab"     data-page="workers">👷 <span>العمال</span></button>
+    <button class="tab"     data-page="locations">🏢 <span>المواقع</span></button>
+    <button class="tab"     data-page="setup">⚙️ <span>الإعداد</span></button>
   </div>
-  <div class="header-time" id="clock">--:--</div>
-</header>
+  <div style="font-size:11px;color:var(--grey);background:var(--card);border:1px solid var(--border);padding:5px 10px;border-radius:7px" id="clk"></div>
+</nav>
 
-<!-- ══════════════ DASHBOARD ══════════════ -->
-<div id="page-dashboard" class="page active">
-  <div class="page-header">
-    <div class="page-title">📊 لوحة التحكم</div>
-    <div class="btn-group">
-      <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄 تحديث</button>
-      <button class="btn btn-ghost btn-sm" onclick="showPage('setup')">⚙️ إعداد</button>
-    </div>
-  </div>
-
-  <div id="conn-alert-dash"></div>
-
-  <!-- STATS -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-value" id="s-done">0</div>
-      <div class="stat-label">مهام منجزة اليوم</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-value" id="s-total">0</div>
-      <div class="stat-label">إجمالي التقارير</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⚠️</div>
-      <div class="stat-value warn" id="s-issues">0</div>
-      <div class="stat-label">مواقع فيها مشاكل</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🔧</div>
-      <div class="stat-value danger" id="s-maint">0</div>
-      <div class="stat-label">طلبات صيانة</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">👷</div>
-      <div class="stat-value cyan" id="s-sup">0</div>
-      <div class="stat-label">مشرفون نشطون</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⭐</div>
-      <div class="stat-value" id="s-rating" style="color:var(--warn)">—</div>
-      <div class="stat-label">متوسط التقييم</div>
+<!-- DASHBOARD -->
+<div class="pg on" id="pg-dashboard">
+  <div class="row">
+    <div class="ptitle">📊 لوحة التحكم</div>
+    <div class="bgrp">
+      <button class="btn bc sm" onclick="loadData()">🔄 تحديث</button>
+      <button class="btn bc sm" onclick="nav('setup')">⚙️ إعداد</button>
     </div>
   </div>
-
-  <div class="glow-line"></div>
-
-  <!-- SERVICE OVERVIEW -->
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-title">🏢 نظرة عامة على الخدمات</div>
-    <div class="service-grid">
-      <div class="service-item">
-        <div class="service-icon green">🧹</div>
-        <div><div class="service-name">خدمات النظافة</div><div class="service-desc">تنظيف عام · تعقيم · مكافحة حشرات · واجهات</div></div>
-      </div>
-      <div class="service-item">
-        <div class="service-icon cyan">🔧</div>
-        <div><div class="service-name">الصيانة</div><div class="service-desc">كهرباء · سباكة · نجارة · تكييف · تشطيبات</div></div>
-      </div>
-      <div class="service-item">
-        <div class="service-icon green">🌿</div>
-        <div><div class="service-name">تنسيق حدائق</div><div class="service-desc">تصميم · زراعة · شبكات ري · قص وتجميل</div></div>
-      </div>
-      <div class="service-item">
-        <div class="service-icon cyan">🍽️</div>
-        <div><div class="service-name">تقديم وجبات</div><div class="service-desc">وجبات يومية · ولائم · إدارة مطاعم · مناسبات</div></div>
-      </div>
-    </div>
+  <div id="dash-alert"></div>
+  <div class="sgrid">
+    <div class="sc"><div class="si">✅</div><div class="sv" id="s1">0</div><div class="sl">مهام منجزة اليوم</div></div>
+    <div class="sc"><div class="si">📋</div><div class="sv" id="s2">0</div><div class="sl">إجمالي التقارير</div></div>
+    <div class="sc"><div class="si">⚠️</div><div class="sv w" id="s3">0</div><div class="sl">مواقع فيها مشاكل</div></div>
+    <div class="sc"><div class="si">🔧</div><div class="sv d" id="s4">0</div><div class="sl">طلبات صيانة</div></div>
+    <div class="sc"><div class="si">👷</div><div class="sv c" id="s5">0</div><div class="sl">مشرفون نشطون</div></div>
+    <div class="sc"><div class="si">⭐</div><div class="sv w" id="s6">—</div><div class="sl">متوسط التقييم</div></div>
   </div>
-
-  <div class="two-col">
-    <!-- RECENT -->
-    <div class="card">
-      <div class="card-title">🔔 آخر التقارير</div>
-      <div id="recent-list">
-        <div class="empty"><div class="empty-icon">📭</div><p>لا توجد بيانات — ارتبط بـ Google Sheets</p></div>
-      </div>
-    </div>
-    <!-- SECTORS -->
-    <div class="card">
-      <div class="card-title">📊 أداء القطاعات</div>
-      <div id="sector-bars">
-        <div class="empty"><div class="empty-icon">📈</div><p>ستظهر بعد ربط البيانات</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PROBLEMS -->
+  <div class="gl"></div>
   <div class="card">
-    <div class="card-title">🚨 مواقع تحتاج انتباه</div>
-    <div id="problem-locs">
-      <div class="empty"><div class="empty-icon">✅</div><p>لا توجد مشاكل مسجلة</p></div>
+    <div class="ctitle">🏢 نظرة عامة على الخدمات</div>
+    <div class="svc">
+      <div class="si2"><div class="ico ig">🧹</div><div><div class="sn">خدمات النظافة</div><div class="sd">تنظيف · تعقيم · مكافحة حشرات · واجهات</div></div></div>
+      <div class="si2"><div class="ico ic">🔧</div><div><div class="sn">الصيانة</div><div class="sd">كهرباء · سباكة · نجارة · تكييف</div></div></div>
+      <div class="si2"><div class="ico ig">🌿</div><div><div class="sn">تنسيق حدائق</div><div class="sd">تصميم · زراعة · شبكات ري · قص</div></div></div>
+      <div class="si2"><div class="ico ic">🍽️</div><div><div class="sn">تقديم وجبات</div><div class="sd">وجبات يومية · ولائم · مناسبات</div></div></div>
     </div>
   </div>
+  <div class="twocol">
+    <div class="card"><div class="ctitle">🔔 آخر التقارير</div><div id="d-recent"><div class="empty"><div class="ei">📭</div><p>لا توجد بيانات</p></div></div></div>
+    <div class="card"><div class="ctitle">📊 أداء القطاعات</div><div id="d-sectors"><div class="empty"><div class="ei">📈</div><p>بعد ربط البيانات</p></div></div></div>
+  </div>
+  <div class="card"><div class="ctitle">🚨 مواقع تحتاج انتباه</div><div id="d-problems"><div class="empty"><div class="ei">✅</div><p>لا توجد مشاكل</p></div></div></div>
 </div>
 
-<!-- ══════════════ QR CODES ══════════════ -->
-<div id="page-qr" class="page">
-  <div class="page-header">
-    <div class="page-title">📱 QR Codes المواقع</div>
-    <div class="btn-group">
-      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ طباعة الكل</button>
-      <button class="btn btn-green btn-sm" onclick="renderQR()">🔄 تحديث QR</button>
+<!-- QR -->
+<div class="pg" id="pg-qr">
+  <div class="row">
+    <div class="ptitle">📱 QR Codes المواقع</div>
+    <div class="bgrp">
+      <button class="btn bc sm" onclick="window.print()">🖨️ طباعة الكل</button>
+      <button class="btn bg sm" onclick="renderQR()">🔄 تحديث</button>
     </div>
   </div>
-
   <div class="card">
-    <div class="card-title">🔗 رابط النموذج (AppSheet / Google Form)</div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="url" id="form-url" placeholder="https://form.appsheet.com/... أو رابط Google Form">
-      <button class="btn btn-green" onclick="saveFormUrl()">💾 حفظ وتوليد</button>
+    <div class="ctitle">🔗 رابط النموذج</div>
+    <div style="display:flex;gap:8px">
+      <input type="url" id="form-url" placeholder="https://form.appsheet.com/...">
+      <button class="btn bg" onclick="saveUrl()">💾 حفظ</button>
     </div>
-    <p style="font-size:12px;color:var(--grey);margin-top:8px">💡 كل QR سيفتح النموذج مع اسم الموقع تلقائياً كـ parameter</p>
+    <p style="font-size:11px;color:var(--grey);margin-top:7px">💡 كل QR سيفتح النموذج مع اسم الموقع تلقائياً</p>
   </div>
-
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="qr-filters"></div>
-
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="qr-search" placeholder="ابحث عن موقع..." oninput="renderQR()">
-  </div>
-
-  <div id="qr-grid" class="qr-grid">
-    <div class="empty" style="grid-column:1/-1"><div class="empty-icon">📱</div><p>أضف مواقع من صفحة "المواقع" أولاً</p></div>
-  </div>
+  <div id="qr-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div class="sw"><input type="text" id="qr-search" placeholder="ابحث عن موقع..." oninput="renderQR()"></div>
+  <div id="qr-grid" class="qgrid"><div class="empty" style="grid-column:1/-1"><div class="ei">📱</div><p>أضف مواقع أولاً</p></div></div>
 </div>
 
-<!-- ══════════════ WORKERS ══════════════ -->
-<div id="page-workers" class="page">
-  <div class="page-header">
-    <div class="page-title">👷 متابعة العمال والمشرفين</div>
-    <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄 تحديث</button>
+<!-- WORKERS -->
+<div class="pg" id="pg-workers">
+  <div class="row">
+    <div class="ptitle">👷 متابعة العمال</div>
+    <button class="btn bc sm" onclick="loadData()">🔄 تحديث</button>
   </div>
-
-  <div class="two-col" style="margin-bottom:16px">
-    <div class="card">
-      <div class="card-title">👔 المشرفون النشطون اليوم</div>
-      <div id="active-sups"><div class="empty"><p>لا توجد بيانات</p></div></div>
-    </div>
-    <div class="card">
-      <div class="card-title">📍 المواقع المُغطاة اليوم</div>
-      <div id="covered-locs"><div class="empty"><p>لا توجد بيانات</p></div></div>
-    </div>
+  <div class="twocol" style="margin-bottom:14px">
+    <div class="card"><div class="ctitle">👔 المشرفون النشطون اليوم</div><div id="w-sups"><div class="empty"><p>لا بيانات</p></div></div></div>
+    <div class="card"><div class="ctitle">📍 المواقع المُغطاة اليوم</div><div id="w-locs"><div class="empty"><p>لا بيانات</p></div></div></div>
   </div>
-
   <div class="card">
-    <div class="card-title">📋 سجل التقارير الكامل</div>
-    <div class="table-wrap">
+    <div class="ctitle">📋 سجل التقارير</div>
+    <div class="tw">
       <table>
-        <thead>
-          <tr>
-            <th>الوقت</th><th>الموقع</th><th>المشرف</th><th>العمال</th>
-            <th>روائح</th><th>تسريبات</th><th>صيانة</th><th>التقييم</th><th>الحالة</th>
-          </tr>
-        </thead>
-        <tbody id="reports-tbody">
-          <tr><td colspan="9" style="text-align:center;color:var(--grey);padding:30px">لا توجد بيانات</td></tr>
-        </tbody>
+        <thead><tr><th>الوقت</th><th>الموقع</th><th>المشرف</th><th>العمال</th><th>روائح</th><th>تسريبات</th><th>صيانة</th><th>التقييم</th><th>الحالة</th></tr></thead>
+        <tbody id="w-table"><tr><td colspan="9" style="text-align:center;color:var(--grey);padding:24px">لا توجد بيانات</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ LOCATIONS ══════════════ -->
-<div id="page-locations" class="page">
-  <div class="page-header">
-    <div class="page-title">🏢 إدارة المواقع</div>
-    <div class="btn-group">
-      <button class="btn btn-ghost btn-sm" onclick="exportLocs()">📤 تصدير</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-modal').classList.add('open')">📥 استيراد</button>
+<!-- LOCATIONS -->
+<div class="pg" id="pg-locations">
+  <div class="row">
+    <div class="ptitle">🏢 إدارة المواقع</div>
+    <div class="bgrp">
+      <button class="btn bc sm" onclick="exportL()">📤 تصدير</button>
+      <button class="btn bc sm" onclick="openImport()">📥 استيراد</button>
     </div>
   </div>
-
   <div class="card">
-    <div class="card-title">➕ إضافة موقع جديد</div>
-    <div class="form-row">
-      <div><label>اسم الموقع</label><input id="loc-name" placeholder="مثال: الحديقة المركزية"></div>
-      <div><label>القطاع</label><select id="loc-sector"><option value="">-- اختر --</option></select></div>
+    <div class="ctitle">➕ إضافة موقع جديد</div>
+    <div class="fr">
+      <div><label>اسم الموقع</label><input id="l-name" placeholder="مثال: الحديقة المركزية"></div>
+      <div><label>القطاع</label><select id="l-sector"><option value="">-- اختر --</option></select></div>
     </div>
     <div style="display:flex;gap:8px;align-items:flex-end">
-      <div style="flex:1"><label>قطاع جديد</label><input id="new-sector" placeholder="اسم القطاع"></div>
-      <button class="btn btn-ghost" onclick="addSector()">➕ قطاع</button>
-      <button class="btn btn-green" onclick="addLoc()">➕ إضافة</button>
+      <div style="flex:1"><label>قطاع جديد</label><input id="l-newsec" placeholder="اسم القطاع"></div>
+      <button class="btn bc" onclick="addSec()">➕ قطاع</button>
+      <button class="btn bg" onclick="addL()">➕ إضافة</button>
     </div>
   </div>
-
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
-      <div class="card-title" style="margin:0">📋 كل المواقع (<span id="loc-count">0</span>)</div>
-      <input type="text" id="loc-search" placeholder="بحث..." style="width:220px" oninput="renderLocs()">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <div class="ctitle" style="margin:0">📋 المواقع (<span id="l-count">0</span>)</div>
+      <input type="text" id="l-search" placeholder="بحث..." style="width:200px" oninput="renderL()">
     </div>
-    <div id="locs-list">
-      <div class="empty"><div class="empty-icon">🏢</div><p>لا توجد مواقع بعد</p></div>
-    </div>
+    <div id="l-list"><div class="empty"><div class="ei">🏢</div><p>لا توجد مواقع</p></div></div>
   </div>
 </div>
 
-<!-- ══════════════ SETUP ══════════════ -->
-<div id="page-setup" class="page">
-  <div class="page-title" style="margin-bottom:20px">⚙️ إعداد الربط مع Google Sheets</div>
-
+<!-- SETUP -->
+<div class="pg" id="pg-setup">
+  <div class="ptitle">⚙️ إعداد الربط مع Google Sheets</div>
   <div class="card">
-    <div class="card-title">📋 خطوات الربط</div>
-    <div class="step"><div class="step-num">1</div><div><div class="step-title">افتح Google Sheet الخاص بـ AppSheet</div><div class="step-desc">الـ Sheet الذي AppSheet يحفظ فيه البيانات</div></div></div>
-    <div class="step"><div class="step-num">2</div><div><div class="step-title">افتح Apps Script</div><div class="step-desc">من القائمة: <code>Extensions → Apps Script</code></div></div></div>
+    <div class="ctitle">📋 خطوات الربط</div>
+    <div class="step"><div class="snum">1</div><div><div class="stitle">افتح Google Sheet الخاص بـ AppSheet</div></div></div>
+    <div class="step"><div class="snum">2</div><div><div class="stitle">افتح Apps Script</div><div class="sdesc"><code>Extensions → Apps Script</code></div></div></div>
     <div class="step">
-      <div class="step-num">3</div>
+      <div class="snum">3</div>
       <div style="flex:1">
-        <div class="step-title">انسخ الكود التالي والصقه</div>
-        <pre id="script-code">function doGet(e) {
+        <div class="stitle">انسخ الكود</div>
+        <pre id="scode">function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
-  if (data.length < 2) {
-    return ContentService
-      .createTextOutput(JSON.stringify({data:[],headers:[],total:0}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-  var headers = data[0];
-  var rows = [];
+  if (data.length < 2) return ContentService
+    .createTextOutput(JSON.stringify({data:[],total:0}))
+    .setMimeType(ContentService.MimeType.JSON);
+  var headers = data[0], rows = [];
   for (var i = 1; i < data.length; i++) {
     var row = {};
     for (var j = 0; j < headers.length; j++) {
-      var val = data[i][j];
-      row[headers[j]] = (val instanceof Date) ? val.toISOString() : val;
+      var v = data[i][j];
+      row[headers[j]] = (v instanceof Date) ? v.toISOString() : v;
     }
     rows.push(row);
   }
   return ContentService
-    .createTextOutput(JSON.stringify({data:rows,headers:headers,total:rows.length}))
+    .createTextOutput(JSON.stringify({data:rows,total:rows.length}))
     .setMimeType(ContentService.MimeType.JSON);
 }</pre>
-        <button class="btn btn-ghost btn-sm" onclick="copyScript()">📋 نسخ الكود</button>
+        <button class="btn bc sm" onclick="copyCode()">📋 نسخ الكود</button>
       </div>
     </div>
-    <div class="step"><div class="step-num">4</div><div><div class="step-title">Deploy الـ Web App</div><div class="step-desc"><code>Deploy → New deployment → Web App → Anyone</code></div></div></div>
+    <div class="step"><div class="snum">4</div><div><div class="stitle">Deploy</div><div class="sdesc"><code>Deploy → New deployment → Web App → Anyone</code></div></div></div>
     <div class="step">
-      <div class="step-num">5</div>
+      <div class="snum">5</div>
       <div style="flex:1">
-        <div class="step-title">ضع الـ Web App URL هنا</div>
+        <div class="stitle">ضع الـ Web App URL هنا</div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <input type="url" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec">
-          <button class="btn btn-green" onclick="testConn()">🔗 اتصل وجرب</button>
+          <button class="btn bg" onclick="testConn()">🔗 اتصل</button>
         </div>
         <div id="conn-status"></div>
       </div>
     </div>
   </div>
-
   <div class="card">
-    <div class="card-title">🗂️ ربط أسماء الأعمدة</div>
-    <p style="font-size:13px;color:var(--grey);margin-bottom:14px">إذا كانت أسماء أعمدة AppSheet مختلفة، حددها هنا:</p>
-    <div class="form-row three">
-      <div><label>اسم الموقع</label><input id="c-location" value="Location"></div>
-      <div><label>اسم المشرف</label><input id="c-supervisor" value="Supervisor"></div>
-      <div><label>عدد العمال</label><input id="c-workers" value="Workers"></div>
+    <div class="ctitle">🗂️ أسماء الأعمدة</div>
+    <div class="fr3">
+      <div><label>الموقع</label><input id="c-loc" value="Location"></div>
+      <div><label>المشرف</label><input id="c-sup" value="Supervisor"></div>
+      <div><label>العمال</label><input id="c-wrk" value="Workers"></div>
     </div>
-    <div class="form-row three">
-      <div><label>التقييم</label><input id="c-rating" value="Rating"></div>
-      <div><label>الروائح</label><input id="c-odors" value="Odors"></div>
-      <div><label>التسريبات</label><input id="c-leaks" value="Leaks"></div>
+    <div class="fr3">
+      <div><label>التقييم</label><input id="c-rat" value="Rating"></div>
+      <div><label>الروائح</label><input id="c-od" value="Odors"></div>
+      <div><label>التسريبات</label><input id="c-lk" value="Leaks"></div>
     </div>
-    <div class="form-row three">
-      <div><label>الأعطال</label><input id="c-faults" value="Faults"></div>
-      <div><label>الطابع الزمني</label><input id="c-timestamp" value="Timestamp"></div>
+    <div class="fr3">
+      <div><label>الأعطال</label><input id="c-ft" value="Faults"></div>
+      <div><label>الوقت</label><input id="c-ts" value="Timestamp"></div>
       <div></div>
     </div>
-    <button class="btn btn-green" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+    <button class="btn bg" onclick="saveSet()">💾 حفظ</button>
   </div>
-
   <div class="card">
-    <div class="card-title">🗑️ إدارة البيانات</div>
-    <div class="btn-group">
-      <button class="btn btn-danger btn-sm" onclick="clearLocs()">🗑️ حذف كل المواقع</button>
-      <button class="btn btn-danger btn-sm" onclick="clearAll()">⚠️ مسح كل الإعدادات</button>
+    <div class="ctitle">🗑️ إدارة البيانات</div>
+    <div class="bgrp">
+      <button class="btn bd sm" onclick="clrL()">🗑️ حذف المواقع</button>
+      <button class="btn bd sm" onclick="clrAll()">⚠️ مسح الكل</button>
     </div>
   </div>
 </div>
 
-<!-- ══ IMPORT MODAL ══ -->
-<div class="modal-overlay" id="import-modal">
+<!-- IMPORT MODAL -->
+<div class="moverlay" id="imp-modal">
   <div class="modal">
     <h3>📥 استيراد مواقع</h3>
-    <div style="margin-bottom:12px">
-      <label>الصق قائمة المواقع — كل موقع في سطر:</label>
-      <textarea id="import-text" rows="7" placeholder="موقع 1&#10;موقع 2&#10;موقع 3"></textarea>
-    </div>
-    <div style="margin-bottom:16px">
-      <label>القطاع</label>
-      <select id="import-sector"><option value="">-- اختر --</option></select>
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-green" onclick="importLocs()">✅ استيراد</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('import-modal').classList.remove('open')">إلغاء</button>
+    <div style="margin-bottom:10px"><label>قائمة المواقع (كل موقع في سطر)</label>
+      <textarea id="imp-text" rows="7" placeholder="موقع 1&#10;موقع 2"></textarea></div>
+    <div style="margin-bottom:14px"><label>القطاع</label>
+      <select id="imp-sec"><option value="">-- اختر --</option></select></div>
+    <div class="bgrp">
+      <button class="btn bg" onclick="doImport()">✅ استيراد</button>
+      <button class="btn bc" onclick="closeImport()">إلغاء</button>
     </div>
   </div>
 </div>
 
 <script>
-// ══════ STATE ══════
-const SECTOR_COLORS = ['#7ec820','#00c8d4','#f5a623','#e84040','#a78bfa','#f472b6','#34d399','#fb923c'];
-
-let S = {
-  locs: [], sectors: ['مديرية الأمن','إدارة المحور','إدارة الكراكات','الخدمات العامة','الميادين','الحدائق','المداخل','الأسواق'],
-  formUrl: '', sheetsUrl: '',
-  cols: { location:'Location', supervisor:'Supervisor', workers:'Workers', rating:'Rating', odors:'Odors', leaks:'Leaks', faults:'Faults', timestamp:'Timestamp' },
-  reports: []
+// ═══════════════ STATE ═══════════════
+const SC = ['#7ec820','#00c8d4','#f5a623','#e84040','#a78bfa','#f472b6','#34d399','#fb923c'];
+let D = {
+  locs:[], secs:['مديرية الأمن','إدارة المحور','إدارة الكراكات','الخدمات العامة','الميادين','الحدائق','المداخل','الأسواق'],
+  url:'', sheetsUrl:'',
+  cols:{loc:'Location',sup:'Supervisor',wrk:'Workers',rat:'Rating',od:'Odors',lk:'Leaks',ft:'Faults',ts:'Timestamp'},
+  reports:[]
 };
 
-function sv() { try { localStorage.setItem('ibuild_cleanops', JSON.stringify(S)); } catch(e){} }
-function ld() { try { const d = localStorage.getItem('ibuild_cleanops'); if(d) S = {...S,...JSON.parse(d)}; } catch(e){} }
+function sv(){try{localStorage.setItem('co_v2',JSON.stringify(D))}catch(e){}}
+function ld(){try{const x=localStorage.getItem('co_v2');if(x)D={...D,...JSON.parse(x)}}catch(e){}}
 
-// ══════ BOOT ══════
+// ═══════════════ NAV ═══════════════
+document.getElementById('tabs').addEventListener('click', function(e){
+  const btn = e.target.closest('[data-page]');
+  if (!btn) return;
+  nav(btn.dataset.page);
+});
+
+function nav(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const pg = document.getElementById('pg-'+id);
+  if(pg) pg.classList.add('on');
+  document.querySelectorAll('[data-page="'+id+'"]').forEach(t=>t.classList.add('on'));
+}
+
+// ═══════════════ CLOCK ═══════════════
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toLocaleDateString('ar-EG')+' — '+n.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick,30000);
+
+// ═══════════════ BOOT ═══════════════
 ld();
-if (S.locs.length === 0) addDefaultLocs();
+if(D.locs.length===0) addDefaults();
 boot();
 
-function boot() {
-  renderSectors(); renderLocs(); renderQR(); renderQRFilters();
-  loadFormUrlInput(); loadSettingsInputs();
-  updateDash(); updateConnAlertDash();
-  startClock();
+function boot(){
+  renderSecs(); renderL(); renderQR(); renderQRFilters();
+  loadInputs(); updateDash(); updateAlert();
 }
 
-function startClock() {
-  function tick() {
-    const now = new Date();
-    document.getElementById('clock').textContent =
-      now.toLocaleDateString('ar-EG') + ' — ' + now.toLocaleTimeString('ar', {hour:'2-digit',minute:'2-digit'});
-  }
-  tick(); setInterval(tick, 30000);
-}
+// ═══════════════ SECTORS ═══════════════
+function sc(s){return SC[D.secs.indexOf(s)%SC.length]||'#7ec820'}
 
-// ══════ NAV ══════
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const page = document.getElementById('page-' + id);
-  if (page) page.classList.add('active');
-  const tabs = ['dashboard','qr','workers','locations','setup'];
-  const i = tabs.indexOf(id);
-  if (i >= 0) document.querySelectorAll('.nav-tab')[i].classList.add('active');
-}
-
-// ══════ SECTORS ══════
-function scColor(s) { return SECTOR_COLORS[S.sectors.indexOf(s) % SECTOR_COLORS.length] || '#7ec820'; }
-
-function renderSectors() {
-  ['loc-sector','import-sector'].forEach(id => {
-    const el = document.getElementById(id); if (!el) return;
-    const cur = el.value;
-    el.innerHTML = '<option value="">-- اختر --</option>';
-    S.sectors.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; el.appendChild(o); });
-    el.value = cur;
+function renderSecs(){
+  ['l-sector','imp-sec'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const v=el.value; el.innerHTML='<option value="">-- اختر --</option>';
+    D.secs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o)});
+    el.value=v;
   });
 }
 
-function addSector() {
-  const n = document.getElementById('new-sector').value.trim();
-  if (!n) return alert('أدخل اسم القطاع');
-  if (S.sectors.includes(n)) return alert('موجود بالفعل');
-  S.sectors.push(n); sv(); renderSectors(); renderQRFilters();
-  document.getElementById('new-sector').value = '';
+function addSec(){
+  const n=document.getElementById('l-newsec').value.trim();
+  if(!n) return alert('أدخل اسم القطاع');
+  if(D.secs.includes(n)) return alert('موجود');
+  D.secs.push(n); sv(); renderSecs(); renderQRFilters();
+  document.getElementById('l-newsec').value='';
 }
 
-// ══════ LOCATIONS ══════
-function addDefaultLocs() {
+// ═══════════════ LOCATIONS ═══════════════
+function addDefaults(){
   [['مديرية الأمن',['مدخل مديرية الأمن','ساحة مديرية الأمن','مواقف مديرية الأمن','دورات مياه مديرية الأمن','حدائق مديرية الأمن','ممرات مديرية الأمن']],
    ['إدارة المحور',['مدخل إدارة المحور','مكاتب المحور','ردهات المحور','دورات مياه المحور','مواقف المحور','ساحة المحور']],
    ['إدارة الكراكات',['ورشة الكراكات','مواقف الكراكات','مستودع الكراكات','مدخل الكراكات','ساحة الكراكات','دورات مياه الكراكات']],
@@ -784,319 +454,267 @@ function addDefaultLocs() {
    ['الحدائق',['حديقة الزهور','حديقة الأطفال','حديقة الشعب','الحديقة المركزية','حديقة النيل','حديقة الأمل']],
    ['المداخل',['مدخل الشمالي','مدخل الجنوبي','مدخل الشرق','مدخل الغرب','بوابة الصناعية','بوابة الزراعية']],
    ['الأسواق',['سوق المركزي','سوق الخضار','سوق الأسماك','سوق الأثاث','السوق الشعبي','سوق الملابس']]
-  ].forEach(([sec, names]) => names.forEach(n => S.locs.push({id: Date.now()+Math.random(), name:n, sector:sec})));
+  ].forEach(([sec,names])=>names.forEach(n=>D.locs.push({id:Date.now()+Math.random(),name:n,sector:sec})));
   sv();
 }
 
-function addLoc() {
-  const name = document.getElementById('loc-name').value.trim();
-  const sector = document.getElementById('loc-sector').value;
-  if (!name) return alert('أدخل اسم الموقع');
-  if (!sector) return alert('اختر القطاع');
-  if (S.locs.find(l => l.name === name)) return alert('الموقع موجود');
-  S.locs.push({id: Date.now(), name, sector}); sv();
-  document.getElementById('loc-name').value = '';
-  renderLocs(); renderQR(); renderQRFilters();
+function addL(){
+  const name=document.getElementById('l-name').value.trim();
+  const sector=document.getElementById('l-sector').value;
+  if(!name) return alert('أدخل الاسم'); if(!sector) return alert('اختر القطاع');
+  if(D.locs.find(l=>l.name===name)) return alert('موجود');
+  D.locs.push({id:Date.now(),name,sector}); sv();
+  document.getElementById('l-name').value='';
+  renderL(); renderQR(); renderQRFilters();
 }
 
-function delLoc(id) {
-  if (!confirm('حذف الموقع؟')) return;
-  S.locs = S.locs.filter(l => l.id !== id); sv();
-  renderLocs(); renderQR();
+function delL(id){
+  if(!confirm('حذف؟')) return;
+  D.locs=D.locs.filter(l=>l.id!==id); sv(); renderL(); renderQR();
 }
 
-function renderLocs() {
-  const q = (document.getElementById('loc-search')?.value || '').toLowerCase();
-  const filtered = S.locs.filter(l => l.name.includes(q) || l.sector.includes(q));
-  document.getElementById('loc-count').textContent = S.locs.length;
-  const el = document.getElementById('locs-list');
-  if (!filtered.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">🏢</div><p>${S.locs.length?'لا نتائج':'لا توجد مواقع'}</p></div>`; return; }
-  const bySec = {};
-  filtered.forEach(l => { if(!bySec[l.sector]) bySec[l.sector]=[]; bySec[l.sector].push(l); });
-  el.innerHTML = Object.entries(bySec).map(([sec, locs]) => `
-    <div style="margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;color:${scColor(sec)};margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">${sec} (${locs.length})</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
-        ${locs.map(l=>`
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;transition:border-color .2s" onmouseover="this.style.borderColor='${scColor(l.sector)}'" onmouseout="this.style.borderColor='var(--border)'">
-            <span style="font-size:13px">${l.name}</span>
-            <button onclick="delLoc(${l.id})" style="background:#e8404022;border:1px solid #e8404033;color:var(--danger);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px">🗑️</button>
-          </div>
-        `).join('')}
+function renderL(){
+  const q=(document.getElementById('l-search')?.value||'').toLowerCase();
+  const f=D.locs.filter(l=>l.name.includes(q)||l.sector.includes(q));
+  document.getElementById('l-count').textContent=D.locs.length;
+  const el=document.getElementById('l-list');
+  if(!f.length){el.innerHTML=`<div class="empty"><div class="ei">🏢</div><p>${D.locs.length?'لا نتائج':'لا توجد مواقع'}</p></div>`;return}
+  const bySec={};
+  f.forEach(l=>{if(!bySec[l.sector])bySec[l.sector]=[];bySec[l.sector].push(l)});
+  el.innerHTML=Object.entries(bySec).map(([s,ls])=>`
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:${sc(s)};margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)">${s} (${ls.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px">
+        ${ls.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:8px 11px">
+          <span style="font-size:12px">${l.name}</span>
+          <button onclick="delL(${l.id})" style="background:#e8404022;border:1px solid #e8404033;color:var(--danger);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:10px">🗑️</button>
+        </div>`).join('')}
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function exportLocs() {
-  const csv = 'الموقع,القطاع\n' + S.locs.map(l=>`${l.name},${l.sector}`).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'}));
-  a.download = 'ibuild_locations.csv'; a.click();
+function exportL(){
+  const csv='الموقع,القطاع\n'+D.locs.map(l=>`${l.name},${l.sector}`).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='locations.csv'; a.click();
 }
 
-function importLocs() {
-  const text = document.getElementById('import-text').value.trim();
-  const sector = document.getElementById('import-sector').value;
-  if (!text) return alert('أدخل قائمة'); if (!sector) return alert('اختر قطاع');
-  let added = 0;
-  text.split('\n').map(l=>l.trim()).filter(Boolean).forEach(name => {
-    if (!S.locs.find(l=>l.name===name)) { S.locs.push({id:Date.now()+Math.random(),name,sector}); added++; }
+function openImport(){renderSecs();document.getElementById('imp-modal').classList.add('on')}
+function closeImport(){document.getElementById('imp-modal').classList.remove('on')}
+
+function doImport(){
+  const text=document.getElementById('imp-text').value.trim();
+  const sector=document.getElementById('imp-sec').value;
+  if(!text) return alert('أدخل القائمة'); if(!sector) return alert('اختر القطاع');
+  let n=0;
+  text.split('\n').map(l=>l.trim()).filter(Boolean).forEach(name=>{
+    if(!D.locs.find(l=>l.name===name)){D.locs.push({id:Date.now()+Math.random(),name,sector});n++}
   });
-  sv(); renderLocs(); renderQR(); renderQRFilters();
-  document.getElementById('import-modal').classList.remove('open');
-  alert(`تم إضافة ${added} موقع`);
+  sv(); renderL(); renderQR(); renderQRFilters(); closeImport();
+  alert(`تم إضافة ${n} موقع`);
 }
 
-function clearLocs() {
-  if (!confirm('حذف كل المواقع؟')) return;
-  S.locs = []; sv(); renderLocs(); renderQR();
+function clrL(){if(!confirm('حذف كل المواقع؟')) return; D.locs=[];sv();renderL();renderQR()}
+
+// ═══════════════ QR ═══════════════
+let qfilt='all';
+
+function renderQRFilters(){
+  const secs=[...new Set(D.locs.map(l=>l.sector))];
+  document.getElementById('qr-filters').innerHTML=`
+    <button class="btn sm ${qfilt==='all'?'bg':'bc'}" onclick="qfilt='all';renderQRFilters();renderQR()">الكل (${D.locs.length})</button>
+    ${secs.map(s=>`<button class="btn sm ${qfilt===s?'bg':'bc'}"
+      style="${qfilt===s?`background:${sc(s)};color:#000`:''}"
+      onclick="qfilt='${s.replace(/'/g,"\\'")}';renderQRFilters();renderQR()">${s} (${D.locs.filter(l=>l.sector===s).length})</button>`).join('')}`;
 }
 
-// ══════ QR ══════
-let qrFilter = 'all';
-
-function renderQRFilters() {
-  const secs = [...new Set(S.locs.map(l=>l.sector))];
-  document.getElementById('qr-filters').innerHTML = `
-    <button class="btn btn-sm ${qrFilter==='all'?'btn-green':'btn-ghost'}" onclick="qrFilter='all';renderQRFilters();renderQR()">الكل (${S.locs.length})</button>
-    ${secs.map(s=>`
-      <button class="btn btn-sm ${qrFilter===s?'btn-green':'btn-ghost'}"
-        style="${qrFilter===s?`background:${scColor(s)};color:#000;box-shadow:0 0 12px ${scColor(s)}44`:''}"
-        onclick="qrFilter='${s}';renderQRFilters();renderQR()">${s} (${S.locs.filter(l=>l.sector===s).length})</button>
-    `).join('')}
-  `;
+function loadInputs(){
+  const fu=document.getElementById('form-url'); if(fu) fu.value=D.url||'';
+  const su=document.getElementById('sheets-url'); if(su) su.value=D.sheetsUrl||'';
+  ['loc','sup','wrk','rat','od','lk','ft','ts'].forEach(k=>{const el=document.getElementById('c-'+k);if(el)el.value=D.cols[k]||''});
 }
 
-function loadFormUrlInput() { const el=document.getElementById('form-url'); if(el) el.value=S.formUrl||''; }
+function saveUrl(){D.url=document.getElementById('form-url').value.trim();sv();renderQR();alert('✅ تم الحفظ')}
 
-function saveFormUrl() {
-  S.formUrl = document.getElementById('form-url').value.trim(); sv(); renderQR();
-  alert('✅ تم الحفظ! جاري توليد QR Codes...');
+function qurl(name){
+  if(!D.url) return 'https://ibuild-eg.com/?loc='+encodeURIComponent(name);
+  return D.url+(D.url.includes('?')?'&':'?')+'location='+encodeURIComponent(name);
 }
 
-function qrUrl(name) {
-  if (!S.formUrl) return 'https://ibuild-eg.com/form?location=' + encodeURIComponent(name);
-  const sep = S.formUrl.includes('?') ? '&' : '?';
-  return S.formUrl + sep + 'location=' + encodeURIComponent(name);
-}
-
-function renderQR() {
-  const q = (document.getElementById('qr-search')?.value||'').toLowerCase();
-  const locs = S.locs.filter(l =>
-    (qrFilter==='all' || l.sector===qrFilter) &&
-    (l.name.toLowerCase().includes(q) || l.sector.toLowerCase().includes(q))
-  );
-  const grid = document.getElementById('qr-grid');
-  if (!locs.length) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📱</div><p>${S.locs.length?'لا نتائج':'أضف مواقع أولاً'}</p></div>`;
-    return;
-  }
-  grid.innerHTML = locs.map(l=>`
-    <div class="qr-card">
-      <div class="qr-sector" style="color:${scColor(l.sector)}">${l.sector}</div>
-      <div class="qr-name">${l.name}</div>
-      <div class="qr-img" id="qi-${l.id}"></div>
-      <div class="qr-actions">
-        <button class="btn btn-ghost btn-sm" onclick="dlQR(${l.id},'${l.name.replace(/'/g,'\\'')}')">⬇️</button>
-        <button class="btn btn-ghost btn-sm" onclick="printQR(${l.id})">🖨️</button>
+function renderQR(){
+  const q=(document.getElementById('qr-search')?.value||'').toLowerCase();
+  const locs=D.locs.filter(l=>(qfilt==='all'||l.sector===qfilt)&&(l.name.toLowerCase().includes(q)||l.sector.toLowerCase().includes(q)));
+  const grid=document.getElementById('qr-grid');
+  if(!locs.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">📱</div><p>${D.locs.length?'لا نتائج':'أضف مواقع أولاً'}</p></div>`;return}
+  grid.innerHTML=locs.map(l=>`
+    <div class="qcard">
+      <div class="qsec" style="color:${sc(l.sector)}">${l.sector}</div>
+      <div class="qname">${l.name}</div>
+      <div class="qr-img" id="qi${l.id}" style="display:flex;justify-content:center;margin-bottom:10px"></div>
+      <div class="qact">
+        <button class="btn bc sm" onclick="dlQR(${l.id},'${l.name.replace(/'/g,"\\'")}')">⬇️</button>
+        <button class="btn bc sm" onclick="prQR(${l.id})">🖨️</button>
       </div>
-    </div>
-  `).join('');
-  locs.forEach(l => {
-    const el = document.getElementById('qi-'+l.id); if(!el) return; el.innerHTML='';
-    try {
-      new QRCode(el, { text:qrUrl(l.name), width:130, height:130,
-        colorDark:'#000', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.M });
-    } catch(e) { el.innerHTML='<div style="width:130px;height:130px;background:#1a2a1a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--grey);font-size:11px">QR Error</div>'; }
+    </div>`).join('');
+  locs.forEach(l=>{
+    const el=document.getElementById('qi'+l.id); if(!el) return; el.innerHTML='';
+    try{new QRCode(el,{text:qurl(l.name),width:120,height:120,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M})}
+    catch(e){el.innerHTML='<div style="width:120px;height:120px;background:#1a2a1a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--grey);font-size:10px">QR</div>'}
   });
 }
 
-function dlQR(id, name) {
-  setTimeout(() => {
-    const canvas = document.getElementById('qi-'+id)?.querySelector('canvas');
-    if (!canvas) return alert('أضف رابط النموذج أولاً');
-    const a = document.createElement('a'); a.download='QR_'+name+'.png'; a.href=canvas.toDataURL(); a.click();
-  }, 100);
+function dlQR(id,name){
+  setTimeout(()=>{
+    const c=document.getElementById('qi'+id)?.querySelector('canvas');
+    if(!c) return alert('أضف رابط النموذج أولاً');
+    const a=document.createElement('a');a.download='QR_'+name+'.png';a.href=c.toDataURL();a.click();
+  },100);
 }
 
-function printQR(id) {
-  const card = document.getElementById('qi-'+id);
-  const win = window.open('','_blank');
-  win.document.write(`<html><head><title>QR</title><style>body{text-align:center;padding:20px;font-family:Cairo,sans-serif}</style></head><body>${card.innerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);
-  win.document.close();
+function prQR(id){
+  const el=document.getElementById('qi'+id);
+  const w=window.open('','_blank');
+  w.document.write(`<html><body style="text-align:center;padding:20px">${el.innerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
 }
 
-// ══════ DATA ══════
-function gc(row, key) { return row[S.cols[key]] || row[key] || ''; }
+// ═══════════════ DATA ═══════════════
+function gc(row,k){return row[D.cols[k]]||row[k]||''}
 
-async function testConn() {
-  const url = document.getElementById('sheets-url').value.trim();
-  if (!url) return alert('أدخل الـ URL أولاً');
-  const el = document.getElementById('conn-status');
-  el.style.display='block'; el.style.cssText='display:block;margin-top:10px;padding:10px;border-radius:8px';
-  el.innerHTML='⏳ جاري الاتصال...'; el.style.background='#1a2a1a'; el.style.border='1px solid var(--border)';
-  try {
-    const res = await fetch(url + (url.includes('?')?'&':'?')+'ts='+Date.now());
-    const data = await res.json();
-    S.sheetsUrl = url; S.reports = data.data||[]; sv();
+async function testConn(){
+  const url=document.getElementById('sheets-url').value.trim();
+  if(!url) return alert('أدخل الـ URL');
+  const el=document.getElementById('conn-status');
+  el.style.display='block'; el.style.cssText='display:block;margin-top:8px;padding:9px;border-radius:7px;font-size:12px;background:var(--card2);border:1px solid var(--border)';
+  el.textContent='⏳ جاري الاتصال...';
+  try{
+    const r=await fetch(url+(url.includes('?')?'&':'?')+'ts='+Date.now());
+    const data=await r.json();
+    D.sheetsUrl=url; D.reports=data.data||[]; sv();
     el.style.background='#7ec82015'; el.style.border='1px solid #7ec82040'; el.style.color='var(--green)';
-    el.innerHTML = `✅ تم الاتصال! عدد الصفوف: ${data.total||0}`;
-    updateDash(); updateConnAlertDash();
-  } catch(e) {
+    el.textContent=`✅ تم الاتصال! عدد الصفوف: ${data.total||0}`;
+    updateDash(); updateAlert();
+  }catch(e){
     el.style.background='#e8404015'; el.style.border='1px solid #e8404040'; el.style.color='var(--danger)';
-    el.innerHTML='❌ فشل الاتصال — تأكد من Deploy صحيح وأن Anyone يمكنه الوصول';
+    el.textContent='❌ فشل — تأكد من Deploy وأن Anyone يملك صلاحية الوصول';
   }
 }
 
-async function loadData() {
-  if (!S.sheetsUrl) return;
-  try {
-    const res = await fetch(S.sheetsUrl+'?ts='+Date.now());
-    const data = await res.json();
-    S.reports = data.data||[]; sv(); updateDash();
-  } catch(e) {}
+async function loadData(){
+  if(!D.sheetsUrl) return;
+  try{const r=await fetch(D.sheetsUrl+'?ts='+Date.now());const data=await r.json();D.reports=data.data||[];sv();updateDash();}catch(e){}
 }
 
-function updateConnAlertDash() {
-  const el = document.getElementById('conn-alert-dash'); if(!el) return;
-  el.innerHTML = S.sheetsUrl
-    ? `<div class="alert alert-success"><span class="dot dot-green"></span> مرتبط بـ Google Sheets</div>`
-    : `<div class="alert alert-warn">⚠️ لم يتم ربط Google Sheets — <a href="#" onclick="showPage('setup');return false" style="color:inherit;font-weight:700">اذهب للإعداد</a></div>`;
+function updateAlert(){
+  const el=document.getElementById('dash-alert'); if(!el) return;
+  el.innerHTML=D.sheetsUrl
+    ?`<div class="alert ag"><span class="dot dg"></span> مرتبط بـ Google Sheets</div>`
+    :`<div class="alert aw">⚠️ لم يتم ربط Google Sheets — <a href="#" onclick="nav('setup');return false" style="color:inherit;font-weight:700">اذهب للإعداد</a></div>`;
 }
 
-function updateDash() {
-  const today = new Date().toDateString();
-  const todayR = S.reports.filter(r => { const ts=gc(r,'timestamp'); return ts && new Date(ts).toDateString()===today; });
-  const issues = S.reports.filter(r => gc(r,'odors')==='نعم'||gc(r,'leaks')==='نعم').length;
-  const maint = S.reports.filter(r => gc(r,'faults')==='نعم').length;
-  const sups = [...new Set(todayR.map(r=>gc(r,'supervisor')).filter(Boolean))].length;
-  const ratings = S.reports.map(r=>parseFloat(gc(r,'rating'))).filter(n=>!isNaN(n));
-  const avg = ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : '—';
-  document.getElementById('s-done').textContent = todayR.length;
-  document.getElementById('s-total').textContent = S.reports.length;
-  document.getElementById('s-issues').textContent = issues;
-  document.getElementById('s-maint').textContent = maint;
-  document.getElementById('s-sup').textContent = sups;
-  document.getElementById('s-rating').textContent = avg;
-  renderRecent(); renderSectorBars(); renderProblems(); renderReports(); renderWorkers();
+function updateDash(){
+  const today=new Date().toDateString();
+  const tr=D.reports.filter(r=>{const ts=gc(r,'ts');return ts&&new Date(ts).toDateString()===today});
+  const iss=D.reports.filter(r=>gc(r,'od')==='نعم'||gc(r,'lk')==='نعم').length;
+  const mnt=D.reports.filter(r=>gc(r,'ft')==='نعم').length;
+  const sups=[...new Set(tr.map(r=>gc(r,'sup')).filter(Boolean))].length;
+  const rats=D.reports.map(r=>parseFloat(gc(r,'rat'))).filter(n=>!isNaN(n));
+  const avg=rats.length?(rats.reduce((a,b)=>a+b,0)/rats.length).toFixed(1):'—';
+  document.getElementById('s1').textContent=tr.length;
+  document.getElementById('s2').textContent=D.reports.length;
+  document.getElementById('s3').textContent=iss;
+  document.getElementById('s4').textContent=mnt;
+  document.getElementById('s5').textContent=sups;
+  document.getElementById('s6').textContent=avg;
+  renderRecent(); renderSectors(); renderProbs(); renderTable(); renderWorkers();
 }
 
-function renderRecent() {
-  const el = document.getElementById('recent-list');
-  const recent = [...S.reports].slice(-5).reverse();
-  if (!recent.length) { el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>لا توجد بيانات</p></div>'; return; }
-  el.innerHTML = recent.map(r => {
-    const ts = gc(r,'timestamp');
-    const t = ts ? new Date(ts).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}) : '—';
-    const loc = gc(r,'location')||'—'; const sup = gc(r,'supervisor')||'—';
-    const rat = gc(r,'rating')||'—';
-    const bad = gc(r,'odors')==='نعم'||gc(r,'leaks')==='نعم'||gc(r,'faults')==='نعم';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div><div style="font-weight:700;font-size:13px">${loc}</div><div style="font-size:11px;color:var(--grey)">${sup} — ${t}</div></div>
-      <div style="display:flex;align-items:center;gap:8px">${rat!=='—'?`<span style="color:var(--warn);font-size:12px">⭐${rat}</span>`:''}
-        <span class="badge ${bad?'badge-warn':'badge-ok'}">${bad?'⚠️':'✅'}</span></div>
-    </div>`;
+function renderRecent(){
+  const el=document.getElementById('d-recent');
+  const r=[...D.reports].slice(-5).reverse();
+  if(!r.length){el.innerHTML='<div class="empty"><div class="ei">📭</div><p>لا بيانات</p></div>';return}
+  el.innerHTML=r.map(x=>{
+    const ts=gc(x,'ts'),t=ts?new Date(ts).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}):'—';
+    const bad=gc(x,'od')==='نعم'||gc(x,'lk')==='نعم'||gc(x,'ft')==='نعم';
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-weight:700;font-size:12px">${gc(x,'loc')||'—'}</div><div style="font-size:11px;color:var(--grey)">${gc(x,'sup')||'—'} — ${t}</div></div>
+      <span class="badge ${bad?'bwn':'bok'}">${bad?'⚠️':'✅'}</span></div>`;
   }).join('');
 }
 
-function renderSectorBars() {
-  const el = document.getElementById('sector-bars');
-  const cnt = {};
-  S.locs.forEach(l => { if(!cnt[l.sector]) cnt[l.sector]=0; });
-  S.reports.forEach(r => {
-    const loc = gc(r,'location');
-    const found = S.locs.find(l=>l.name===loc);
-    if (found) cnt[found.sector]=(cnt[found.sector]||0)+1;
-  });
-  const entries = Object.entries(cnt);
-  if (!entries.length || !entries.some(e=>e[1]>0)) { el.innerHTML='<div class="empty"><div class="empty-icon">📈</div><p>ستظهر بعد ربط البيانات</p></div>'; return; }
-  const max = Math.max(...entries.map(e=>e[1]),1);
-  el.innerHTML = entries.map(([sec,n]) => `
-    <div class="bar-wrap">
-      <div class="bar-label"><span style="font-size:12px">${sec}</span><span style="font-size:12px;color:var(--grey)">${n}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${n/max*100}%;background:linear-gradient(90deg,${scColor(sec)},${scColor(sec)}88)"></div></div>
-    </div>
-  `).join('');
+function renderSectors(){
+  const el=document.getElementById('d-sectors');
+  const cnt={};
+  D.locs.forEach(l=>{if(!cnt[l.sector])cnt[l.sector]=0});
+  D.reports.forEach(r=>{const f=D.locs.find(l=>l.name===gc(r,'loc'));if(f)cnt[f.sector]=(cnt[f.sector]||0)+1});
+  const entries=Object.entries(cnt);
+  if(!entries.some(e=>e[1]>0)){el.innerHTML='<div class="empty"><div class="ei">📈</div><p>بعد ربط البيانات</p></div>';return}
+  const mx=Math.max(...entries.map(e=>e[1]),1);
+  el.innerHTML=entries.map(([s,n])=>`<div class="bar">
+    <div class="bl"><span>${s}</span><span style="color:var(--grey)">${n}</span></div>
+    <div class="bt"><div class="bf" style="width:${n/mx*100}%;background:linear-gradient(90deg,${sc(s)},${sc(s)}88)"></div></div>
+  </div>`).join('');
 }
 
-function renderProblems() {
-  const el = document.getElementById('problem-locs');
-  const probs = S.reports.filter(r => gc(r,'odors')==='نعم'||gc(r,'leaks')==='نعم'||gc(r,'faults')==='نعم');
-  if (!probs.length) { el.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p>لا توجد مشاكل</p></div>'; return; }
-  const byLoc = {};
-  probs.forEach(r => { const l=gc(r,'location')||'غير معروف'; if(!byLoc[l]) byLoc[l]=[]; byLoc[l].push(r); });
-  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
-    ${Object.entries(byLoc).slice(0,12).map(([loc,rs])=>`
-      <div style="background:var(--card2);border:1px solid #e8404030;border-radius:10px;padding:12px">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px">⚠️ ${loc}</div>
-        <div style="font-size:11px;color:var(--grey)">${rs.length} تقرير بمشكلة</div>
-      </div>
-    `).join('')}
+function renderProbs(){
+  const el=document.getElementById('d-problems');
+  const p=D.reports.filter(r=>gc(r,'od')==='نعم'||gc(r,'lk')==='نعم'||gc(r,'ft')==='نعم');
+  if(!p.length){el.innerHTML='<div class="empty"><div class="ei">✅</div><p>لا مشاكل</p></div>';return}
+  const by={};p.forEach(r=>{const l=gc(r,'loc')||'?';if(!by[l])by[l]=[];by[l].push(r)});
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px">
+    ${Object.entries(by).slice(0,12).map(([l,rs])=>`<div style="background:var(--card2);border:1px solid #e8404030;border-radius:9px;padding:11px"><div style="font-weight:700;font-size:12px;margin-bottom:4px">⚠️ ${l}</div><div style="font-size:11px;color:var(--grey)">${rs.length} تقرير</div></div>`).join('')}
   </div>`;
 }
 
-function renderReports() {
-  const tbody = document.getElementById('reports-tbody');
-  if (!S.reports.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--grey);padding:30px">لا توجد بيانات</td></tr>'; return; }
-  tbody.innerHTML = [...S.reports].reverse().slice(0,100).map(r => {
-    const ts=gc(r,'timestamp'); const t=ts?new Date(ts).toLocaleString('ar'):'—';
-    const od=gc(r,'odors'); const lk=gc(r,'leaks'); const ft=gc(r,'faults');
+function renderTable(){
+  const tbody=document.getElementById('w-table');
+  if(!D.reports.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--grey);padding:24px">لا بيانات</td></tr>';return}
+  tbody.innerHTML=[...D.reports].reverse().slice(0,100).map(r=>{
+    const ts=gc(r,'ts'),t=ts?new Date(ts).toLocaleString('ar'):'—';
+    const od=gc(r,'od'),lk=gc(r,'lk'),ft=gc(r,'ft');
     const bad=od==='نعم'||lk==='نعم'||ft==='نعم';
-    const rat=parseFloat(gc(r,'rating'));
-    return `<tr>
-      <td style="font-size:11px;color:var(--grey)">${t}</td>
-      <td style="font-weight:600">${gc(r,'location')||'—'}</td>
-      <td>${gc(r,'supervisor')||'—'}</td>
-      <td>${gc(r,'workers')||'—'}</td>
-      <td><span class="badge ${od==='نعم'?'badge-bad':'badge-ok'}">${od||'—'}</span></td>
-      <td><span class="badge ${lk==='نعم'?'badge-bad':'badge-ok'}">${lk||'—'}</span></td>
-      <td><span class="badge ${ft==='نعم'?'badge-bad':'badge-ok'}">${ft||'—'}</span></td>
-      <td>${!isNaN(rat)?'⭐'.repeat(Math.min(Math.round(rat),5))+` (${rat})` :'—'}</td>
-      <td><span class="badge ${bad?'badge-warn':'badge-ok'}">${bad?'⚠️ مشكلة':'✅ سليم'}</span></td>
+    const rat=parseFloat(gc(r,'rat'));
+    return`<tr><td style="font-size:11px;color:var(--grey)">${t}</td>
+      <td style="font-weight:600">${gc(r,'loc')||'—'}</td>
+      <td>${gc(r,'sup')||'—'}</td><td>${gc(r,'wrk')||'—'}</td>
+      <td><span class="badge ${od==='نعم'?'bbd':'bok'}">${od||'—'}</span></td>
+      <td><span class="badge ${lk==='نعم'?'bbd':'bok'}">${lk||'—'}</span></td>
+      <td><span class="badge ${ft==='نعم'?'bbd':'bok'}">${ft||'—'}</span></td>
+      <td>${!isNaN(rat)?'⭐'.repeat(Math.min(Math.round(rat),5)):' —'}</td>
+      <td><span class="badge ${bad?'bwn':'bok'}">${bad?'⚠️':'✅'}</span></td>
     </tr>`;
   }).join('');
 }
 
-function renderWorkers() {
-  const today = new Date().toDateString();
-  const todayR = S.reports.filter(r=>{const ts=gc(r,'timestamp');return ts&&new Date(ts).toDateString()===today;});
-  const sups = [...new Set(todayR.map(r=>gc(r,'supervisor')).filter(Boolean))];
-  const locs = [...new Set(todayR.map(r=>gc(r,'location')).filter(Boolean))];
-  const supEl=document.getElementById('active-sups');
-  supEl.innerHTML = sups.length
-    ? sups.map(s=>`<div style="padding:9px 12px;background:var(--card2);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px"><span class="dot dot-green"></span>${s}</div>`).join('')
-    : '<div class="empty"><p>لا توجد بيانات</p></div>';
-  const locEl=document.getElementById('covered-locs');
-  locEl.innerHTML = locs.length
-    ? locs.map(l=>`<div style="padding:9px 12px;background:var(--card2);border-radius:8px;margin-bottom:8px">📍 ${l}</div>`).join('')
-    : '<div class="empty"><p>لا توجد بيانات</p></div>';
+function renderWorkers(){
+  const today=new Date().toDateString();
+  const tr=D.reports.filter(r=>{const ts=gc(r,'ts');return ts&&new Date(ts).toDateString()===today});
+  const sups=[...new Set(tr.map(r=>gc(r,'sup')).filter(Boolean))];
+  const locs=[...new Set(tr.map(r=>gc(r,'loc')).filter(Boolean))];
+  document.getElementById('w-sups').innerHTML=sups.length
+    ?sups.map(s=>`<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px;display:flex;align-items:center;gap:7px"><span class="dot dg"></span>${s}</div>`).join('')
+    :'<div class="empty"><p>لا بيانات</p></div>';
+  document.getElementById('w-locs').innerHTML=locs.length
+    ?locs.map(l=>`<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px">📍 ${l}</div>`).join('')
+    :'<div class="empty"><p>لا بيانات</p></div>';
 }
 
-// ══════ SETTINGS ══════
-function loadSettingsInputs() {
-  if (S.sheetsUrl) { const el=document.getElementById('sheets-url'); if(el) el.value=S.sheetsUrl; }
-  Object.keys(S.cols).forEach(k=>{const el=document.getElementById('c-'+k);if(el)el.value=S.cols[k];});
+// ═══════════════ SETTINGS ═══════════════
+function saveSet(){
+  const su=document.getElementById('sheets-url')?.value.trim(); if(su) D.sheetsUrl=su;
+  ['loc','sup','wrk','rat','od','lk','ft','ts'].forEach(k=>{const el=document.getElementById('c-'+k);if(el)D.cols[k]=el.value});
+  sv(); updateAlert(); alert('✅ تم الحفظ');
 }
 
-function saveSettings() {
-  const url=document.getElementById('sheets-url')?.value.trim();
-  if(url) S.sheetsUrl=url;
-  Object.keys(S.cols).forEach(k=>{const el=document.getElementById('c-'+k);if(el)S.cols[k]=el.value;});
-  sv(); updateConnAlertDash(); alert('✅ تم حفظ الإعدادات');
-}
-
-function copyScript() {
-  const code = document.getElementById('script-code').textContent;
-  navigator.clipboard.writeText(code).then(()=>alert('✅ تم نسخ الكود')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('✅ تم نسخ الكود');
+function copyCode(){
+  const code=document.getElementById('scode').textContent;
+  navigator.clipboard.writeText(code).then(()=>alert('✅ تم النسخ')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('✅ تم النسخ');
   });
 }
 
-function clearAll() {
-  if(!confirm('مسح كل البيانات والإعدادات؟')) return;
-  localStorage.removeItem('ibuild_cleanops'); location.reload();
-}
+function clrAll(){if(!confirm('مسح كل البيانات؟')) return;localStorage.removeItem('co_v2');location.reload()}
 </script>
 </body>
 </html>
