@@ -399,11 +399,11 @@ pre {
     </div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('dashboard',this)">📊 <span class="hide">Dashboard</span></button>
-    <button class="nav-tab" onclick="showPage('qr',this)">📱 <span class="hide">QR Codes</span></button>
-    <button class="nav-tab" onclick="showPage('workers',this)">👷 <span class="hide">العمال</span></button>
-    <button class="nav-tab" onclick="showPage('locations',this)">🏢 <span class="hide">المواقع</span></button>
-    <button class="nav-tab" onclick="showPage('setup',this)">⚙️ <span class="hide">الإعداد</span></button>
+    <button class="nav-tab active" onclick="showPage('dashboard')">📊 <span class="hide">Dashboard</span></button>
+    <button class="nav-tab" onclick="showPage('qr')">📱 <span class="hide">QR Codes</span></button>
+    <button class="nav-tab" onclick="showPage('workers')">👷 <span class="hide">العمال</span></button>
+    <button class="nav-tab" onclick="showPage('locations')">🏢 <span class="hide">المواقع</span></button>
+    <button class="nav-tab" onclick="showPage('setup')">⚙️ <span class="hide">الإعداد</span></button>
   </div>
   <div class="header-time" id="clock">--:--</div>
 </header>
@@ -414,7 +414,7 @@ pre {
     <div class="page-title">📊 لوحة التحكم</div>
     <div class="btn-group">
       <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄 تحديث</button>
-      <button class="btn btn-ghost btn-sm" onclick="showPage('setup',null)">⚙️ إعداد</button>
+      <button class="btn btn-ghost btn-sm" onclick="showPage('setup')">⚙️ إعداد</button>
     </div>
   </div>
 
@@ -743,14 +743,14 @@ function startClock() {
 }
 
 // ══════ NAV ══════
-function showPage(id, btn) {
+function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  if (btn) btn.classList.add('active');
-  else { const tabs = ['dashboard','qr','workers','locations','setup'];
-    const i = tabs.indexOf(id);
-    if(i>=0) document.querySelectorAll('.nav-tab')[i].classList.add('active'); }
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  const tabs = ['dashboard','qr','workers','locations','setup'];
+  const i = tabs.indexOf(id);
+  if (i >= 0) document.querySelectorAll('.nav-tab')[i].classList.add('active');
 }
 
 // ══════ SECTORS ══════
@@ -962,7 +962,7 @@ function updateConnAlertDash() {
   const el = document.getElementById('conn-alert-dash'); if(!el) return;
   el.innerHTML = S.sheetsUrl
     ? `<div class="alert alert-success"><span class="dot dot-green"></span> مرتبط بـ Google Sheets</div>`
-    : `<div class="alert alert-warn">⚠️ لم يتم ربط Google Sheets — <a href="#" onclick="showPage('setup',null);return false" style="color:inherit;font-weight:700">اذهب للإعداد</a></div>`;
+    : `<div class="alert alert-warn">⚠️ لم يتم ربط Google Sheets — <a href="#" onclick="showPage('setup');return false" style="color:inherit;font-weight:700">اذهب للإعداد</a></div>`;
 }
 
 function updateDash() {
