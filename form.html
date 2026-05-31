@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نموذج النظافة — CleanOps</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:      #005F56;
+      --primary-dark: #003D36;
+      --primary-light:#E0F4F1;
+      --accent:       #F59E0B;
+      --danger:       #DC2626;
+      --success:      #16A34A;
+      --warn:         #D97706;
+      --bg:           #EFF3F5;
+      --card:         #FFFFFF;
+      --text:         #0F172A;
+      --sub:          #64748B;
+      --border:       #E2E8F0;
+      --radius:       16px;
+      --shadow:       0 1px 16px rgba(0,0,0,0.07);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);padding-bottom:36px}
+
+    /* ── HEADER ── */
+    .hdr{background:linear-gradient(150deg,var(--primary-dark) 0%,var(--primary) 100%);color:#fff;padding:28px 18px 48px;position:relative}
+    .hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:32px;background:var(--bg);border-radius:32px 32px 0 0}
+    .hdr-brand{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.65;margin-bottom:12px}
+    .hdr-site{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:4px}
+    .hdr-sector{font-size:13px;font-weight:500;opacity:.72}
+    .hdr-time{position:absolute;top:28px;left:18px;font-size:12px;opacity:.65;font-weight:600}
+
+    /* ── BODY ── */
+    .body{padding:10px 13px 0}
+
+    /* ── CARD ── */
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 16px;margin-bottom:12px}
+    .ct{font-size:11px;font-weight:800;color:var(--primary);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .ct::after{content:'';flex:1;height:1.5px;background:linear-gradient(to left,transparent,var(--primary-light))}
+
+    /* ── FIELD ── */
+    .field{margin-bottom:16px}
+    .field:last-child{margin-bottom:0}
+    label.lbl{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+    .req{color:var(--danger)}
+    input[type=text],input[type=number],textarea,select{
+      width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:11px;
+      font-family:'Cairo',sans-serif;font-size:15px;color:var(--text);background:#F8FAFC;
+      direction:rtl;appearance:none;-webkit-appearance:none;transition:border-color .2s,background .2s}
+    input:focus,textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+    textarea{min-height:80px;resize:vertical}
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+
+    /* ── STEPPER ── */
+    .step{display:flex;border:2px solid var(--border);border-radius:11px;overflow:hidden;background:#F8FAFC}
+    .step-btn{background:none;border:none;width:52px;font-size:24px;font-weight:600;color:var(--primary);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s}
+    .step-btn:active{background:var(--primary-light)}
+    .step input{flex:1;border:none;background:transparent;text-align:center;font-family:'Cairo',sans-serif;font-size:20px;font-weight:900;padding:10px 0;min-width:0}
+    .step input:focus{outline:none;border:none;background:transparent}
+
+    /* ── CHECKLIST ITEMS ── */
+    .chk-item{display:flex;align-items:center;gap:12px;padding:13px 14px;border:2px solid var(--border);border-radius:12px;margin-bottom:8px;background:#F8FAFC;cursor:pointer;transition:all .18s;user-select:none}
+    .chk-item:last-child{margin-bottom:0}
+    .chk-item.checked{border-color:var(--success);background:#F0FDF4}
+    .chk-item input[type=checkbox]{display:none}
+    .chk-box{width:26px;height:26px;border-radius:8px;border:2px solid #CBD5E1;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s;font-size:15px}
+    .chk-item.checked .chk-box{background:var(--success);border-color:var(--success);color:#fff}
+    .chk-lbl{font-size:14px;font-weight:600;flex:1;line-height:1.35}
+    .chk-item.checked .chk-lbl{color:var(--success)}
+
+    /* ── YES/NO TOGGLE ── */
+    .yesno{display:flex;gap:9px}
+    .yn-btn{flex:1;padding:12px 8px;border:2px solid var(--border);border-radius:11px;background:#F8FAFC;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:var(--sub);cursor:pointer;text-align:center;transition:all .18s;line-height:1.3}
+    .yn-btn.on-yes{border-color:var(--danger);background:#FEF2F2;color:var(--danger)}
+    .yn-btn.on-no {border-color:var(--success);background:#F0FDF4;color:var(--success)}
+
+    /* ── COMPLETION TOGGLE ── */
+    .comp-btn{flex:1;padding:12px 8px;border:2px solid var(--border);border-radius:11px;background:#F8FAFC;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;color:var(--sub);cursor:pointer;text-align:center;transition:all .18s}
+    .comp-btn.on-yes{border-color:var(--success);background:#F0FDF4;color:var(--success)}
+    .comp-btn.on-no {border-color:var(--danger);background:#FEF2F2;color:var(--danger)}
+
+    /* ── STARS ── */
+    .stars{display:flex;flex-direction:row-reverse;justify-content:center;gap:5px;padding:4px 0}
+    .stars input{display:none}
+    .stars label{font-size:44px;color:#D1D5DB;cursor:pointer;transition:color .1s,transform .15s;margin:0;line-height:1;user-select:none}
+    .stars input:checked ~ label,.stars label:hover,.stars label:hover ~ label{color:#F59E0B;transform:scale(1.15)}
+    .star-txt{text-align:center;font-size:13px;font-weight:700;color:var(--sub);margin-top:5px;min-height:18px}
+
+    /* ── PHOTO ── */
+    .photo-z{border:2.5px dashed #CBD5E1;border-radius:13px;padding:22px 16px 18px;text-align:center;cursor:pointer;background:#F8FAFC;transition:all .2s;position:relative;overflow:hidden}
+    .photo-z.done{border-color:var(--success);background:#F0FDF4}
+    .photo-z input[type=file]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:0}
+    .ph-icon{font-size:34px;display:block;margin-bottom:5px}
+    .ph-lbl{font-size:14px;font-weight:700;color:var(--primary)}
+    .ph-sub{font-size:11px;color:var(--sub);margin-top:2px}
+    #photo-preview{display:none;width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:10px}
+
+    /* ── CONDITIONAL (reason) ── */
+    #reason-wrap{display:none;margin-top:12px;animation:slide-in .25s ease}
+    @keyframes slide-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── SUBMIT ── */
+    .sub-wrap{padding:4px 13px 0}
+    .sub-btn{width:100%;padding:17px;background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;border:none;border-radius:var(--radius);font-family:'Cairo',sans-serif;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 6px 22px rgba(0,63,54,.32);transition:transform .15s,box-shadow .15s,opacity .2s;letter-spacing:.5px}
+    .sub-btn:active{transform:scale(.98);box-shadow:0 2px 10px rgba(0,63,54,.2)}
+    .sub-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+    /* ── SUCCESS ── */
+    #success{display:none;position:fixed;inset:0;background:#fff;z-index:999;flex-direction:column;align-items:center;justify-content:center;padding:36px 24px;text-align:center}
+    #success.show{display:flex}
+    .ok-ring{width:104px;height:104px;background:linear-gradient(135deg,var(--primary-dark),var(--primary));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;margin-bottom:26px;animation:pop .45s cubic-bezier(.175,.885,.32,1.275) both}
+    @keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+    .ok-h{font-size:26px;font-weight:900;margin-bottom:8px}
+    .ok-s{font-size:15px;font-weight:700;color:var(--primary);margin-bottom:8px}
+    .ok-p{font-size:13px;color:var(--sub);line-height:1.7}
+
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:22px;left:13px;right:13px;background:#1E293B;color:#fff;padding:13px 16px;border-radius:13px;font-size:14px;font-weight:700;text-align:center;transform:translateY(110px);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);z-index:1000}
+    #toast.show{transform:translateY(0)}
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-brand">🧹 CleanOps</div>
+  <div class="hdr-site"   id="hdr-site">جارٍ التحميل...</div>
+  <div class="hdr-sector" id="hdr-sector"></div>
+  <div class="hdr-time"   id="hdr-time"></div>
+</div>
+
+<form id="form" novalidate>
+<div class="body">
+
+  <!-- ① البيانات الأساسية -->
+  <div class="card">
+    <div class="ct">👷 البيانات الأساسية</div>
+
+    <div class="field">
+      <label class="lbl">اسم المشرف <span class="req">*</span></label>
+      <input type="text" id="supervisor" placeholder="أدخل اسم المشرف">
+    </div>
+
+    <div class="field">
+      <label class="lbl">عدد العمال في القسم</label>
+      <div class="step">
+        <button type="button" class="step-btn" onclick="stepN(-1)">−</button>
+        <input type="number" id="workers" value="1" min="0" max="99" readonly>
+        <button type="button" class="step-btn" onclick="stepN(1)">+</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">رقم الدور</label>
+      <input type="text" id="floor" placeholder="مثال: الدور الأول">
+    </div>
+  </div>
+
+  <!-- ② مهام التنظيف -->
+  <div class="card">
+    <div class="ct">✅ مهام التنظيف</div>
+
+    <div class="chk-item" id="ci-floors"     onclick="toggleChk('floors')">
+      <input type="checkbox" id="floors"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تنظيف الأرضيات</span>
+    </div>
+    <div class="chk-item" id="ci-wc"         onclick="toggleChk('wc')">
+      <input type="checkbox" id="wc"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تعقيم الـ WC</span>
+    </div>
+    <div class="chk-item" id="ci-basins"     onclick="toggleChk('basins')">
+      <input type="checkbox" id="basins"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تنظيف الأحواض والمرايات</span>
+    </div>
+    <div class="chk-item" id="ci-handles"    onclick="toggleChk('handles')">
+      <input type="checkbox" id="handles"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تنظيف مقابض الأبواب ونقاط اللمس</span>
+    </div>
+    <div class="chk-item" id="ci-bins"       onclick="toggleChk('bins')">
+      <input type="checkbox" id="bins"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تفريغ سلال المهملات</span>
+    </div>
+    <div class="chk-item" id="ci-bags"       onclick="toggleChk('bags')">
+      <input type="checkbox" id="bags"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تغيير أكياس القمامة</span>
+    </div>
+    <div class="chk-item" id="ci-supplies"   onclick="toggleChk('supplies')">
+      <input type="checkbox" id="supplies"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم التأكد من توفر الصابون والمناديل والمعطرات</span>
+    </div>
+    <div class="chk-item" id="ci-walls"      onclick="toggleChk('walls')">
+      <input type="checkbox" id="walls"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تنظيف الحوائط والشبابيك</span>
+    </div>
+    <div class="chk-item" id="ci-elevator"   onclick="toggleChk('elevator')">
+      <input type="checkbox" id="elevator"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تنظيف الاسنسير والسلم</span>
+    </div>
+    <div class="chk-item" id="ci-rooms"      onclick="toggleChk('rooms')">
+      <input type="checkbox" id="rooms"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم تنظيف الغرف والمكاتب</span>
+    </div>
+    <div class="chk-item" id="ci-baskets"    onclick="toggleChk('baskets')">
+      <input type="checkbox" id="baskets"><div class="chk-box">✓</div>
+      <span class="chk-lbl">غسيل وفحص بساكت المخلفات</span>
+    </div>
+    <div class="chk-item" id="ci-sanitizers" onclick="toggleChk('sanitizers')">
+      <input type="checkbox" id="sanitizers"><div class="chk-box">✓</div>
+      <span class="chk-lbl">تم استخدام مواد التعقيم المعتمدة</span>
+    </div>
+    <div class="chk-item" id="ci-uniform"    onclick="toggleChk('uniform')">
+      <input type="checkbox" id="uniform"><div class="chk-box">✓</div>
+      <span class="chk-lbl">التزام العمال بزي الشركة</span>
+    </div>
+  </div>
+
+  <!-- ③ المشاكل -->
+  <div class="card">
+    <div class="ct">⚠️ المشاكل</div>
+
+    <div class="field">
+      <label class="lbl">هل توجد روائح غير طبيعية؟</label>
+      <div class="yesno">
+        <button type="button" class="yn-btn" id="yo-yes" onclick="yn('odors','yes')">🔴 نعم، يوجد</button>
+        <button type="button" class="yn-btn" id="yo-no"  onclick="yn('odors','no')">🟢 لا يوجد</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">هل توجد تسريبات مياه؟</label>
+      <div class="yesno">
+        <button type="button" class="yn-btn" id="yl-yes" onclick="yn('leaks','yes')">🔴 نعم، يوجد</button>
+        <button type="button" class="yn-btn" id="yl-no"  onclick="yn('leaks','no')">🟢 لا يوجد</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">هل توجد أعطال تحتاج صيانة؟</label>
+      <div class="yesno">
+        <button type="button" class="yn-btn" id="yf-yes" onclick="yn('failures','yes')">🔴 نعم، يوجد</button>
+        <button type="button" class="yn-btn" id="yf-no"  onclick="yn('failures','no')">🟢 لا يوجد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ الإنجاز -->
+  <div class="card">
+    <div class="ct">📋 الإنجاز</div>
+    <div class="field">
+      <label class="lbl">هل تم تنفيذ المهمة بالكامل؟ <span class="req">*</span></label>
+      <div class="yesno">
+        <button type="button" class="yn-btn comp-btn" id="yc-yes" onclick="yn('completed','yes')">✅ نعم، تم</button>
+        <button type="button" class="yn-btn comp-btn" id="yc-no"  onclick="yn('completed','no')">❌ لم يكتمل</button>
+      </div>
+      <div id="reason-wrap">
+        <textarea id="reason" placeholder="اذكر سبب عدم الإنجاز..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ التقييم -->
+  <div class="card">
+    <div class="ct">⭐ تقييم الحالة العامة <span class="req">*</span></div>
+    <div class="stars">
+      <input type="radio" id="s5" name="rating" value="5"><label for="s5">★</label>
+      <input type="radio" id="s4" name="rating" value="4"><label for="s4">★</label>
+      <input type="radio" id="s3" name="rating" value="3"><label for="s3">★</label>
+      <input type="radio" id="s2" name="rating" value="2"><label for="s2">★</label>
+      <input type="radio" id="s1" name="rating" value="1"><label for="s1">★</label>
+    </div>
+    <div class="star-txt" id="star-txt">اختر تقييمك</div>
+  </div>
+
+  <!-- ⑥ ملاحظات وصورة -->
+  <div class="card">
+    <div class="ct">📝 ملاحظات وصورة</div>
+
+    <div class="field">
+      <label class="lbl">ملاحظات العامل</label>
+      <textarea id="worker-notes" placeholder="ملاحظات العامل..."></textarea>
+    </div>
+
+    <div class="field">
+      <label class="lbl">ملاحظات المشرف</label>
+      <textarea id="supervisor-notes" placeholder="ملاحظات المشرف..."></textarea>
+    </div>
+
+    <div class="field">
+      <label class="lbl">صورة بعد التنظيف</label>
+      <div class="photo-z" id="photo-z">
+        <input type="file" id="photo-input" accept="image/*" capture="environment">
+        <span class="ph-icon">📷</span>
+        <div class="ph-lbl" id="ph-lbl">التقط صورة</div>
+        <div class="ph-sub">اضغط لفتح الكاميرا</div>
+      </div>
+      <img id="photo-preview" alt="معاينة">
+    </div>
+  </div>
+
+</div><!-- /body -->
+
+<div class="sub-wrap">
+  <button type="submit" class="sub-btn" id="sub-btn">✅ إرسال التقرير</button>
+</div>
+</form>
+
+<!-- SUCCESS -->
+<div id="success">
+  <div class="ok-ring">✅</div>
+  <div class="ok-h">تم الإرسال!</div>
+  <div class="ok-s" id="ok-site"></div>
+  <div class="ok-p">تم تسجيل تقرير النظافة بنجاح<br>وإضافته للسجلات تلقائياً ✓</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ================================================================
+   ⚙️  CONFIG — ضع رابط الـ Apps Script هنا
+   ================================================================ */
+const SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+
+/* ── URL Params ── */
+const P       = new URLSearchParams(location.search);
+const SITE    = decodeURIComponent(P.get('site')   || 'موقع غير محدد');
+const SECTOR  = decodeURIComponent(P.get('sector') || '');
+
+document.getElementById('hdr-site').textContent   = SITE;
+document.getElementById('hdr-sector').textContent = SECTOR ? '📍 ' + SECTOR : '';
+document.getElementById('ok-site').textContent    = SITE;
+
+/* ── Clock ── */
+const tick = () => document.getElementById('hdr-time').textContent =
+  new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit',hour12:true});
+tick(); setInterval(tick, 15000);
+
+/* ── Stepper ── */
+function stepN(d){
+  const e=document.getElementById('workers');
+  e.value=Math.max(0,Math.min(99,(+e.value||0)+d));
+}
+
+/* ── Checkbox ── */
+function toggleChk(id){
+  const cb=document.getElementById(id);
+  cb.checked=!cb.checked;
+  document.getElementById('ci-'+id).classList.toggle('checked',cb.checked);
+}
+function chk(id){ return document.getElementById(id).checked ? 'TRUE' : 'FALSE'; }
+
+/* ── Yes/No ── */
+const YN={};
+function yn(type,val){
+  YN[type]=val;
+  if(type==='odors'){
+    document.getElementById('yo-yes').className='yn-btn'+(val==='yes'?' on-yes':'');
+    document.getElementById('yo-no' ).className='yn-btn'+(val==='no' ?' on-no' :'');
+  } else if(type==='leaks'){
+    document.getElementById('yl-yes').className='yn-btn'+(val==='yes'?' on-yes':'');
+    document.getElementById('yl-no' ).className='yn-btn'+(val==='no' ?' on-no' :'');
+  } else if(type==='failures'){
+    document.getElementById('yf-yes').className='yn-btn'+(val==='yes'?' on-yes':'');
+    document.getElementById('yf-no' ).className='yn-btn'+(val==='no' ?' on-no' :'');
+  } else if(type==='completed'){
+    document.getElementById('yc-yes').className='yn-btn comp-btn'+(val==='yes'?' on-yes':'');
+    document.getElementById('yc-no' ).className='yn-btn comp-btn'+(val==='no' ?' on-no' :'');
+    document.getElementById('reason-wrap').style.display = val==='no' ? 'block' : 'none';
+  }
+}
+function ynVal(type){ return YN[type]==='yes'?'نعم':YN[type]==='no'?'لا':'—'; }
+
+/* ── Stars ── */
+const starTxt={1:'ضعيف ⭐',2:'مقبول ⭐⭐',3:'جيد ⭐⭐⭐',4:'جيد جداً ⭐⭐⭐⭐',5:'ممتاز ⭐⭐⭐⭐⭐'};
+document.querySelectorAll('input[name="rating"]').forEach(r=>{
+  r.addEventListener('change',()=>{
+    document.getElementById('star-txt').textContent=starTxt[r.value]||'';
+  });
+});
+
+/* ── Photo ── */
+document.getElementById('photo-input').addEventListener('change',function(){
+  if(!this.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('photo-preview');
+    img.src=e.target.result;img.style.display='block';
+    document.getElementById('ph-lbl').textContent='✅ تم التقاط الصورة';
+    document.getElementById('photo-z').classList.add('done');
+  };
+  reader.readAsDataURL(this.files[0]);
+});
+
+/* ── Toast ── */
+function toast(msg,ms=3200){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),ms);
+}
+
+/* ── Submit ── */
+document.getElementById('form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const supervisor=document.getElementById('supervisor').value.trim();
+  const rating=document.querySelector('input[name="rating"]:checked')?.value;
+  if(!supervisor)   {toast('⚠️ يرجى إدخال اسم المشرف');return;}
+  if(!YN.completed) {toast('⚠️ يرجى تحديد حالة الإنجاز');return;}
+  if(!rating)       {toast('⚠️ يرجى تحديد التقييم');return;}
+
+  const btn=document.getElementById('sub-btn');
+  btn.disabled=true; btn.textContent='⏳ جارٍ الإرسال...';
+
+  const now=new Date();
+  const ts=now.toLocaleDateString('ar-EG')+' '+now.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit',hour12:true});
+
+  /* Map exactly to Excel column order */
+  const payload={
+    action:'submit',
+    timestamp:    ts,
+    result:       SECTOR,
+    site:         SITE,
+    supervisor,
+    floors:       chk('floors'),
+    wc:           chk('wc'),
+    basins:       chk('basins'),
+    handles:      chk('handles'),
+    bins:         chk('bins'),
+    bags:         chk('bags'),
+    supplies:     chk('supplies'),
+    odors:        ynVal('odors'),
+    leaks:        ynVal('leaks'),
+    failures:     ynVal('failures'),
+    sanitizers:   chk('sanitizers'),
+    photo:        '',
+    workerNotes:  document.getElementById('worker-notes').value.trim(),
+    supNotes:     document.getElementById('supervisor-notes').value.trim(),
+    rating,
+    completed:    ynVal('completed'),
+    reason:       document.getElementById('reason').value.trim()||'—',
+    workers:      document.getElementById('workers').value,
+    uniform:      chk('uniform'),
+    walls:        chk('walls'),
+    elevator:     chk('elevator'),
+    rooms:        chk('rooms'),
+    baskets:      chk('baskets'),
+    workers2:     document.getElementById('workers').value,
+    col28:        '',
+    floor:        document.getElementById('floor').value.trim()
+  };
+
+  const url=SCRIPT_URL+'?'+new URLSearchParams(payload).toString();
+  try{
+    await fetch(url,{mode:'no-cors'});
+    document.getElementById('success').classList.add('show');
+  }catch{
+    btn.disabled=false; btn.textContent='✅ إرسال التقرير';
+    toast('❌ فشل الإرسال — تحقق من الاتصال');
+  }
+});
+</script>
+</body>
+</html>
