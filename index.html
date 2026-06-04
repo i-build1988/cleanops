@@ -135,6 +135,16 @@ pre{background:#080a08;border:1px solid var(--border);border-radius:9px;padding:
   padding:22px;max-width:460px;width:90%;max-height:80vh;overflow-y:auto}
 .modal h3{margin-bottom:14px;color:var(--green)}
 
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:11px 22px;font-size:13px;font-weight:700;z-index:999;
+  transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.ok{border-color:#7ec82060;color:var(--green)}
+#toast.err{border-color:#e8404060;color:var(--danger)}
+#toast.inf{border-color:#00c8d460;color:var(--cyan)}
+
 /* MISC */
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
 .dg{background:var(--green);box-shadow:0 0 6px var(--green)}
@@ -163,6 +173,9 @@ pre{background:#080a08;border:1px solid var(--border);border-radius:9px;padding:
 </style>
 </head>
 <body>
+
+<!-- TOAST -->
+<div id="toast"></div>
 
 <nav>
   <div class="logo">
@@ -227,7 +240,6 @@ pre{background:#080a08;border:1px solid var(--border);border-radius:9px;padding:
     </div>
   </div>
 
-  <!-- EXCEL UPLOAD -->
   <div class="card" style="border-color:#00c8d455">
     <div class="ctitle">📂 رفع ملف Excel أو CSV — توليد QR تلقائي</div>
     <div id="drop-zone"
@@ -407,6 +419,34 @@ pre{background:#080a08;border:1px solid var(--border);border-radius:9px;padding:
 </div>
 
 <script>
+// ═══════════════ UTILS ═══════════════
+const _clkEl = document.getElementById('clk');
+const _toastEl = document.getElementById('toast');
+let _toastTimer = null;
+
+// XSS protection — escape before inserting into innerHTML
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+// Toast replaces all alert() calls
+function toast(msg, type = 'ok') {
+  _toastEl.textContent = msg;
+  _toastEl.className = 'show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { _toastEl.className = ''; }, 3000);
+}
+
+// Safe unique string ID
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
 // ═══════════════ STATE ═══════════════
 const SC = ['#7ec820','#00c8d4','#f5a623','#e84040','#a78bfa','#f472b6','#34d399','#fb923c'];
 let D = {
@@ -434,16 +474,17 @@ function nav(id){
   document.querySelectorAll('[data-page="'+id+'"]').forEach(t=>t.classList.add('on'));
 }
 
-// ═══════════════ CLOCK ═══════════════
+// ═══════════════ CLOCK — cached element, 1-minute interval ═══════════════
 function tick(){
-  const n=new Date();
-  document.getElementById('clk').textContent=n.toLocaleDateString('ar-EG')+' — '+n.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+  const n = new Date();
+  _clkEl.textContent = n.toLocaleDateString('ar-EG') + ' — ' + n.toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'});
 }
-tick(); setInterval(tick,30000);
+tick();
+setInterval(tick, 60000);
 
 // ═══════════════ BOOT ═══════════════
 ld();
-if(D.locs.length===0) addDefaults();
+if(D.locs.length === 0) addDefaults();
 boot();
 
 function boot(){
@@ -452,23 +493,27 @@ function boot(){
 }
 
 // ═══════════════ SECTORS ═══════════════
-function sc(s){return SC[D.secs.indexOf(s)%SC.length]||'#7ec820'}
+function sc(s){ return SC[D.secs.indexOf(s) % SC.length] || '#7ec820'; }
 
 function renderSecs(){
-  ['l-sector','imp-sec'].forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    const v=el.value; el.innerHTML='<option value="">-- اختر --</option>';
-    D.secs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o)});
-    el.value=v;
+  ['l-sector','imp-sec'].forEach(id => {
+    const el = document.getElementById(id); if(!el) return;
+    const v = el.value; el.innerHTML = '<option value="">-- اختر --</option>';
+    D.secs.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s; el.appendChild(o);
+    });
+    el.value = v;
   });
 }
 
 function addSec(){
-  const n=document.getElementById('l-newsec').value.trim();
-  if(!n) return alert('أدخل اسم القطاع');
-  if(D.secs.includes(n)) return alert('موجود');
+  const n = document.getElementById('l-newsec').value.trim();
+  if(!n) return toast('أدخل اسم القطاع', 'err');
+  if(D.secs.includes(n)) return toast('القطاع موجود بالفعل', 'err');
   D.secs.push(n); sv(); renderSecs(); renderQRFilters();
-  document.getElementById('l-newsec').value='';
+  document.getElementById('l-newsec').value = '';
+  toast('✅ تم إضافة القطاع');
 }
 
 // ═══════════════ LOCATIONS ═══════════════
@@ -481,270 +526,351 @@ function addDefaults(){
    ['الحدائق',['حديقة الزهور','حديقة الأطفال','حديقة الشعب','الحديقة المركزية','حديقة النيل','حديقة الأمل']],
    ['المداخل',['مدخل الشمالي','مدخل الجنوبي','مدخل الشرق','مدخل الغرب','بوابة الصناعية','بوابة الزراعية']],
    ['الأسواق',['سوق المركزي','سوق الخضار','سوق الأسماك','سوق الأثاث','السوق الشعبي','سوق الملابس']]
-  ].forEach(([sec,names])=>names.forEach(n=>D.locs.push({id:Date.now()+Math.random(),name:n,sector:sec})));
+  ].forEach(([sec,names]) => names.forEach(n => D.locs.push({id:uid(), name:n, sector:sec})));
   sv();
 }
 
 function addL(){
-  const name=document.getElementById('l-name').value.trim();
-  const sector=document.getElementById('l-sector').value;
-  if(!name) return alert('أدخل الاسم'); if(!sector) return alert('اختر القطاع');
-  if(D.locs.find(l=>l.name===name)) return alert('موجود');
-  D.locs.push({id:Date.now(),name,sector}); sv();
-  document.getElementById('l-name').value='';
+  const name = document.getElementById('l-name').value.trim();
+  const sector = document.getElementById('l-sector').value;
+  if(!name) return toast('أدخل اسم الموقع', 'err');
+  if(!sector) return toast('اختر القطاع', 'err');
+  if(D.locs.find(l => l.name === name)) return toast('الموقع موجود بالفعل', 'err');
+  D.locs.push({id:uid(), name, sector}); sv();
+  document.getElementById('l-name').value = '';
   renderL(); renderQR(); renderQRFilters();
+  toast('✅ تم إضافة الموقع');
 }
 
+// Delete by string ID using data attribute instead of inline onclick param
 function delL(id){
-  if(!confirm('حذف؟')) return;
-  D.locs=D.locs.filter(l=>l.id!==id); sv(); renderL(); renderQR();
+  if(!confirm('حذف هذا الموقع؟')) return;
+  D.locs = D.locs.filter(l => l.id !== id); sv(); renderL(); renderQR();
 }
+
+// Delegate delete clicks — avoids inline onclick with unsafe ID interpolation
+document.getElementById('l-list').addEventListener('click', function(e){
+  const btn = e.target.closest('[data-del-id]');
+  if(btn) delL(btn.dataset.delId);
+});
 
 function renderL(){
-  const q=(document.getElementById('l-search')?.value||'').toLowerCase();
-  const f=D.locs.filter(l=>l.name.includes(q)||l.sector.includes(q));
-  document.getElementById('l-count').textContent=D.locs.length;
-  const el=document.getElementById('l-list');
-  if(!f.length){el.innerHTML=`<div class="empty"><div class="ei">🏢</div><p>${D.locs.length?'لا نتائج':'لا توجد مواقع'}</p></div>`;return}
-  const bySec={};
-  f.forEach(l=>{if(!bySec[l.sector])bySec[l.sector]=[];bySec[l.sector].push(l)});
-  el.innerHTML=Object.entries(bySec).map(([s,ls])=>`
+  const q = (document.getElementById('l-search')?.value || '').toLowerCase();
+  const f = D.locs.filter(l => l.name.includes(q) || l.sector.includes(q));
+  document.getElementById('l-count').textContent = D.locs.length;
+  const el = document.getElementById('l-list');
+  if(!f.length){
+    el.innerHTML = `<div class="empty"><div class="ei">🏢</div><p>${D.locs.length ? 'لا نتائج' : 'لا توجد مواقع'}</p></div>`;
+    return;
+  }
+  const bySec = {};
+  f.forEach(l => { if(!bySec[l.sector]) bySec[l.sector] = []; bySec[l.sector].push(l); });
+  el.innerHTML = Object.entries(bySec).map(([s, ls]) => `
     <div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:${sc(s)};margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)">${s} (${ls.length})</div>
+      <div style="font-size:11px;font-weight:700;color:${esc(sc(s))};margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)">${esc(s)} (${ls.length})</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px">
-        ${ls.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:8px 11px">
-          <span style="font-size:12px">${l.name}</span>
-          <button onclick="delL(${l.id})" style="background:#e8404022;border:1px solid #e8404033;color:var(--danger);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:10px">🗑️</button>
+        ${ls.map(l => `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:8px 11px">
+          <span style="font-size:12px">${esc(l.name)}</span>
+          <button data-del-id="${esc(l.id)}" style="background:#e8404022;border:1px solid #e8404033;color:var(--danger);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:10px">🗑️</button>
         </div>`).join('')}
       </div>
     </div>`).join('');
 }
 
 function exportL(){
-  const csv='الموقع,القطاع\n'+D.locs.map(l=>`${l.name},${l.sector}`).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
-  a.download='locations.csv'; a.click();
+  const csv = 'الموقع,القطاع\n' + D.locs.map(l => `${l.name},${l.sector}`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = 'locations.csv'; a.click();
 }
 
-function openImport(){renderSecs();document.getElementById('imp-modal').classList.add('on')}
-function closeImport(){document.getElementById('imp-modal').classList.remove('on')}
+function openImport(){ renderSecs(); document.getElementById('imp-modal').classList.add('on'); }
+function closeImport(){ document.getElementById('imp-modal').classList.remove('on'); }
 
 function doImport(){
-  const text=document.getElementById('imp-text').value.trim();
-  const sector=document.getElementById('imp-sec').value;
-  if(!text) return alert('أدخل القائمة'); if(!sector) return alert('اختر القطاع');
-  let n=0;
-  text.split('\n').map(l=>l.trim()).filter(Boolean).forEach(name=>{
-    if(!D.locs.find(l=>l.name===name)){D.locs.push({id:Date.now()+Math.random(),name,sector});n++}
+  const text = document.getElementById('imp-text').value.trim();
+  const sector = document.getElementById('imp-sec').value;
+  if(!text) return toast('أدخل القائمة', 'err');
+  if(!sector) return toast('اختر القطاع', 'err');
+  let n = 0;
+  text.split('\n').map(l => l.trim()).filter(Boolean).forEach(name => {
+    if(!D.locs.find(l => l.name === name)){ D.locs.push({id:uid(), name, sector}); n++; }
   });
   sv(); renderL(); renderQR(); renderQRFilters(); closeImport();
-  alert(`تم إضافة ${n} موقع`);
+  toast(`✅ تم إضافة ${n} موقع`);
 }
 
-function clrL(){if(!confirm('حذف كل المواقع؟')) return; D.locs=[];sv();renderL();renderQR()}
+function clrL(){
+  if(!confirm('حذف كل المواقع؟')) return;
+  D.locs = []; sv(); renderL(); renderQR();
+  toast('تم حذف كل المواقع', 'inf');
+}
 
 // ═══════════════ QR ═══════════════
-let qfilt='all';
+let qfilt = 'all';
+// Cache: map of loc.id → rendered QR url to avoid full re-render on search
+const _qrCache = {};
 
 function renderQRFilters(){
-  const secs=[...new Set(D.locs.map(l=>l.sector))];
-  document.getElementById('qr-filters').innerHTML=`
+  const secs = [...new Set(D.locs.map(l => l.sector))];
+  document.getElementById('qr-filters').innerHTML = `
     <button class="btn sm ${qfilt==='all'?'bg':'bc'}" onclick="qfilt='all';renderQRFilters();renderQR()">الكل (${D.locs.length})</button>
-    ${secs.map(s=>`<button class="btn sm ${qfilt===s?'bg':'bc'}"
-      style="${qfilt===s?`background:${sc(s)};color:#000`:''}"
-      onclick="qfilt='${s.replace(/'/g,"\\'")}';renderQRFilters();renderQR()">${s} (${D.locs.filter(l=>l.sector===s).length})</button>`).join('')}`;
+    ${secs.map(s => `<button class="btn sm ${qfilt===s?'bg':'bc'}"
+      style="${qfilt===s ? `background:${sc(s)};color:#000` : ''}"
+      onclick="qfilt=${JSON.stringify(s)};renderQRFilters();renderQR()">${esc(s)} (${D.locs.filter(l=>l.sector===s).length})</button>`).join('')}`;
 }
 
 function loadInputs(){
-  const fu=document.getElementById('form-url'); if(fu) fu.value=D.url||'';
-  const su=document.getElementById('sheets-url'); if(su) su.value=D.sheetsUrl||'';
-  ['loc','sup','wrk','rat','od','lk','ft','ts'].forEach(k=>{const el=document.getElementById('c-'+k);if(el)el.value=D.cols[k]||''});
-}
-
-function saveUrl(){D.url=document.getElementById('form-url').value.trim();sv();renderQR();alert('✅ تم الحفظ')}
-
-function qurl(name){
-  if(!D.url) return 'https://ibuild-eg.com/?loc='+encodeURIComponent(name);
-  return D.url+(D.url.includes('?')?'&':'?')+'location='+encodeURIComponent(name);
-}
-
-function renderQR(){
-  const q=(document.getElementById('qr-search')?.value||'').toLowerCase();
-  const locs=D.locs.filter(l=>(qfilt==='all'||l.sector===qfilt)&&(l.name.toLowerCase().includes(q)||l.sector.toLowerCase().includes(q)));
-  const grid=document.getElementById('qr-grid');
-  if(!locs.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">📱</div><p>${D.locs.length?'لا نتائج':'أضف مواقع أولاً'}</p></div>`;return}
-  grid.innerHTML=locs.map(l=>`
-    <div class="qcard">
-      <div class="qsec" style="color:${sc(l.sector)}">${l.sector}</div>
-      <div class="qname">${l.name}</div>
-      <div class="qr-img" id="qi${l.id}" style="display:flex;justify-content:center;margin-bottom:10px"></div>
-      <div class="qact">
-        <button class="btn bc sm" onclick="dlQR(${l.id},'${l.name.replace(/'/g,"\\'")}')">⬇️</button>
-        <button class="btn bc sm" onclick="prQR(${l.id})">🖨️</button>
-      </div>
-    </div>`).join('');
-  locs.forEach(l=>{
-    const el=document.getElementById('qi'+l.id); if(!el) return; el.innerHTML='';
-    try{new QRCode(el,{text:qurl(l.name),width:120,height:120,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M})}
-    catch(e){el.innerHTML='<div style="width:120px;height:120px;background:#1a2a1a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--grey);font-size:10px">QR</div>'}
+  const fu = document.getElementById('form-url'); if(fu) fu.value = D.url || '';
+  const su = document.getElementById('sheets-url'); if(su) su.value = D.sheetsUrl || '';
+  ['loc','sup','wrk','rat','od','lk','ft','ts'].forEach(k => {
+    const el = document.getElementById('c-'+k); if(el) el.value = D.cols[k] || '';
   });
 }
 
-function dlQR(id,name){
-  setTimeout(()=>{
-    const c=document.getElementById('qi'+id)?.querySelector('canvas');
-    if(!c) return alert('أضف رابط النموذج أولاً');
-    const a=document.createElement('a');a.download='QR_'+name+'.png';a.href=c.toDataURL();a.click();
-  },100);
+function saveUrl(){
+  D.url = document.getElementById('form-url').value.trim();
+  // Invalidate QR cache when form URL changes
+  Object.keys(_qrCache).forEach(k => delete _qrCache[k]);
+  sv(); renderQR(); toast('✅ تم حفظ الرابط');
+}
+
+function qurl(name){
+  if(!D.url) return 'https://ibuild-eg.com/?loc=' + encodeURIComponent(name);
+  return D.url + (D.url.includes('?') ? '&' : '?') + 'location=' + encodeURIComponent(name);
+}
+
+function renderQR(){
+  const q = (document.getElementById('qr-search')?.value || '').toLowerCase();
+  const locs = D.locs.filter(l =>
+    (qfilt === 'all' || l.sector === qfilt) &&
+    (l.name.toLowerCase().includes(q) || l.sector.toLowerCase().includes(q))
+  );
+  const grid = document.getElementById('qr-grid');
+  if(!locs.length){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="ei">📱</div><p>${D.locs.length ? 'لا نتائج' : 'أضف مواقع أولاً'}</p></div>`;
+    return;
+  }
+
+  // Only re-render cards that aren't already in the DOM (avoid destroying existing canvases)
+  const existingIds = new Set([...grid.querySelectorAll('.qcard')].map(c => c.dataset.locId));
+  const newIds = new Set(locs.map(l => l.id));
+
+  // Remove cards no longer in filter
+  grid.querySelectorAll('.qcard').forEach(c => {
+    if(!newIds.has(c.dataset.locId)) c.remove();
+  });
+
+  // Add missing cards
+  locs.forEach(l => {
+    if(existingIds.has(l.id)) return; // already rendered, skip
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.dataset.locId = l.id;
+    card.innerHTML = `
+      <div class="qsec" style="color:${esc(sc(l.sector))}">${esc(l.sector)}</div>
+      <div class="qname">${esc(l.name)}</div>
+      <div class="qr-img" id="qi${esc(l.id)}" style="display:flex;justify-content:center;margin-bottom:10px"></div>
+      <div class="qact">
+        <button class="btn bc sm" data-dl-id="${esc(l.id)}" data-dl-name="${esc(l.name)}">⬇️</button>
+        <button class="btn bc sm" data-pr-id="${esc(l.id)}">🖨️</button>
+      </div>`;
+    grid.appendChild(card);
+    const el = document.getElementById('qi' + l.id);
+    try {
+      new QRCode(el, {text:qurl(l.name), width:120, height:120, colorDark:'#000', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.M});
+    } catch(e) {
+      el.innerHTML = '<div style="width:120px;height:120px;background:#1a2a1a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--grey);font-size:10px">QR</div>';
+    }
+  });
+}
+
+// Delegate QR action buttons
+document.getElementById('qr-grid').addEventListener('click', function(e){
+  const dl = e.target.closest('[data-dl-id]');
+  if(dl){ dlQR(dl.dataset.dlId, dl.dataset.dlName); return; }
+  const pr = e.target.closest('[data-pr-id]');
+  if(pr) prQR(pr.dataset.prId);
+});
+
+function dlQR(id, name){
+  setTimeout(() => {
+    const c = document.getElementById('qi'+id)?.querySelector('canvas');
+    if(!c) return toast('أضف رابط النموذج أولاً لتنزيل الـ QR', 'err');
+    const a = document.createElement('a');
+    a.download = 'QR_' + name + '.png';
+    a.href = c.toDataURL(); a.click();
+  }, 100);
 }
 
 function prQR(id){
-  const el=document.getElementById('qi'+id);
-  const w=window.open('','_blank');
-  w.document.write(`<html><body style="text-align:center;padding:20px">${el.innerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  const el = document.getElementById('qi'+id);
+  if(!el) return;
+  // Use canvas data URL instead of cloning innerHTML to avoid XSS in print window
+  const canvas = el.querySelector('canvas');
+  const imgSrc = canvas ? canvas.toDataURL() : '';
+  const w = window.open('', '_blank');
+  w.document.write(
+    '<html><body style="text-align:center;padding:20px">' +
+    (imgSrc ? '<img src="' + imgSrc + '" style="border-radius:6px">' : '') +
+    '<script>window.onload=function(){window.print();}<\/script></body></html>'
+  );
   w.document.close();
 }
 
 // ═══════════════ DATA ═══════════════
-function gc(row,k){return row[D.cols[k]]||row[k]||''}
+function gc(row, k){ return row[D.cols[k]] || row[k] || ''; }
 
 async function testConn(){
-  const url=document.getElementById('sheets-url').value.trim();
-  if(!url) return alert('أدخل الـ URL');
-  const el=document.getElementById('conn-status');
-  el.style.display='block'; el.style.cssText='display:block;margin-top:8px;padding:9px;border-radius:7px;font-size:12px;background:var(--card2);border:1px solid var(--border)';
-  el.textContent='⏳ جاري الاتصال...';
-  try{
-    const r=await fetch(url+(url.includes('?')?'&':'?')+'ts='+Date.now());
-    const data=await r.json();
-    D.sheetsUrl=url; D.reports=data.data||[]; sv();
-    el.style.background='#7ec82015'; el.style.border='1px solid #7ec82040'; el.style.color='var(--green)';
-    el.textContent=`✅ تم الاتصال! عدد الصفوف: ${data.total||0}`;
+  const url = document.getElementById('sheets-url').value.trim();
+  if(!url) return toast('أدخل الـ URL أولاً', 'err');
+  const el = document.getElementById('conn-status');
+  el.style.cssText = 'display:block;margin-top:8px;padding:9px;border-radius:7px;font-size:12px;background:var(--card2);border:1px solid var(--border)';
+  el.textContent = '⏳ جاري الاتصال...';
+  try {
+    const r = await fetch(url + (url.includes('?') ? '&' : '?') + 'ts=' + Date.now());
+    const data = await r.json();
+    D.sheetsUrl = url; D.reports = data.data || []; sv();
+    el.style.cssText = 'display:block;margin-top:8px;padding:9px;border-radius:7px;font-size:12px;background:#7ec82015;border:1px solid #7ec82040;color:var(--green)';
+    el.textContent = `✅ تم الاتصال! عدد الصفوف: ${data.total || 0}`;
     updateDash(); updateAlert();
-  }catch(e){
-    el.style.background='#e8404015'; el.style.border='1px solid #e8404040'; el.style.color='var(--danger)';
-    el.textContent='❌ فشل — تأكد من Deploy وأن Anyone يملك صلاحية الوصول';
+    toast('✅ تم الاتصال بـ Google Sheets');
+  } catch(e) {
+    el.style.cssText = 'display:block;margin-top:8px;padding:9px;border-radius:7px;font-size:12px;background:#e8404015;border:1px solid #e8404040;color:var(--danger)';
+    el.textContent = '❌ فشل الاتصال — تأكد من Deploy وأن Anyone يملك صلاحية الوصول';
+    toast('❌ فشل الاتصال', 'err');
   }
 }
 
 async function loadData(){
   if(!D.sheetsUrl) return;
-  try{const r=await fetch(D.sheetsUrl+'?ts='+Date.now());const data=await r.json();D.reports=data.data||[];sv();updateDash();}catch(e){}
+  try {
+    const r = await fetch(D.sheetsUrl + '?ts=' + Date.now());
+    const data = await r.json();
+    D.reports = data.data || []; sv(); updateDash();
+    toast('✅ تم تحديث البيانات');
+  } catch(e) {
+    toast('❌ فشل تحديث البيانات — تحقق من الاتصال', 'err');
+  }
 }
 
 function updateAlert(){
-  const el=document.getElementById('dash-alert'); if(!el) return;
-  el.innerHTML=D.sheetsUrl
-    ?`<div class="alert ag"><span class="dot dg"></span> مرتبط بـ Google Sheets</div>`
-    :`<div class="alert aw">⚠️ لم يتم ربط Google Sheets — <a href="#" onclick="nav('setup');return false" style="color:inherit;font-weight:700">اذهب للإعداد</a></div>`;
+  const el = document.getElementById('dash-alert'); if(!el) return;
+  el.innerHTML = D.sheetsUrl
+    ? `<div class="alert ag"><span class="dot dg"></span> مرتبط بـ Google Sheets</div>`
+    : `<div class="alert aw">⚠️ لم يتم ربط Google Sheets — <a href="#" onclick="nav('setup');return false" style="color:inherit;font-weight:700">اذهب للإعداد</a></div>`;
 }
 
 function updateDash(){
-  const today=new Date().toDateString();
-  const tr=D.reports.filter(r=>{const ts=gc(r,'ts');return ts&&new Date(ts).toDateString()===today});
-  const iss=D.reports.filter(r=>gc(r,'od')==='نعم'||gc(r,'lk')==='نعم').length;
-  const mnt=D.reports.filter(r=>gc(r,'ft')==='نعم').length;
-  const sups=[...new Set(tr.map(r=>gc(r,'sup')).filter(Boolean))].length;
-  const rats=D.reports.map(r=>parseFloat(gc(r,'rat'))).filter(n=>!isNaN(n));
-  const avg=rats.length?(rats.reduce((a,b)=>a+b,0)/rats.length).toFixed(1):'—';
-  document.getElementById('s1').textContent=tr.length;
-  document.getElementById('s2').textContent=D.reports.length;
-  document.getElementById('s3').textContent=iss;
-  document.getElementById('s4').textContent=mnt;
-  document.getElementById('s5').textContent=sups;
-  document.getElementById('s6').textContent=avg;
+  const today = new Date().toDateString();
+  const tr = D.reports.filter(r => { const ts = gc(r,'ts'); return ts && new Date(ts).toDateString() === today; });
+  const iss = D.reports.filter(r => gc(r,'od') === 'نعم' || gc(r,'lk') === 'نعم').length;
+  const mnt = D.reports.filter(r => gc(r,'ft') === 'نعم').length;
+  const sups = [...new Set(tr.map(r => gc(r,'sup')).filter(Boolean))].length;
+  const rats = D.reports.map(r => parseFloat(gc(r,'rat'))).filter(n => !isNaN(n));
+  const avg = rats.length ? (rats.reduce((a,b) => a+b, 0) / rats.length).toFixed(1) : '—';
+  document.getElementById('s1').textContent = tr.length;
+  document.getElementById('s2').textContent = D.reports.length;
+  document.getElementById('s3').textContent = iss;
+  document.getElementById('s4').textContent = mnt;
+  document.getElementById('s5').textContent = sups;
+  document.getElementById('s6').textContent = avg;
   renderRecent(); renderSectors(); renderProbs(); renderTable(); renderWorkers();
 }
 
 function renderRecent(){
-  const el=document.getElementById('d-recent');
-  const r=[...D.reports].slice(-5).reverse();
-  if(!r.length){el.innerHTML='<div class="empty"><div class="ei">📭</div><p>لا بيانات</p></div>';return}
-  el.innerHTML=r.map(x=>{
-    const ts=gc(x,'ts'),t=ts?new Date(ts).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}):'—';
-    const bad=gc(x,'od')==='نعم'||gc(x,'lk')==='نعم'||gc(x,'ft')==='نعم';
-    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
-      <div><div style="font-weight:700;font-size:12px">${gc(x,'loc')||'—'}</div><div style="font-size:11px;color:var(--grey)">${gc(x,'sup')||'—'} — ${t}</div></div>
+  const el = document.getElementById('d-recent');
+  const r = [...D.reports].slice(-5).reverse();
+  if(!r.length){ el.innerHTML = '<div class="empty"><div class="ei">📭</div><p>لا بيانات</p></div>'; return; }
+  el.innerHTML = r.map(x => {
+    const ts = gc(x,'ts'), t = ts ? new Date(ts).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const bad = gc(x,'od') === 'نعم' || gc(x,'lk') === 'نعم' || gc(x,'ft') === 'نعم';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-weight:700;font-size:12px">${esc(gc(x,'loc')) || '—'}</div><div style="font-size:11px;color:var(--grey)">${esc(gc(x,'sup')) || '—'} — ${esc(t)}</div></div>
       <span class="badge ${bad?'bwn':'bok'}">${bad?'⚠️':'✅'}</span></div>`;
   }).join('');
 }
 
 function renderSectors(){
-  const el=document.getElementById('d-sectors');
-  const cnt={};
-  D.locs.forEach(l=>{if(!cnt[l.sector])cnt[l.sector]=0});
-  D.reports.forEach(r=>{const f=D.locs.find(l=>l.name===gc(r,'loc'));if(f)cnt[f.sector]=(cnt[f.sector]||0)+1});
-  const entries=Object.entries(cnt);
-  if(!entries.some(e=>e[1]>0)){el.innerHTML='<div class="empty"><div class="ei">📈</div><p>بعد ربط البيانات</p></div>';return}
-  const mx=Math.max(...entries.map(e=>e[1]),1);
-  el.innerHTML=entries.map(([s,n])=>`<div class="bar">
-    <div class="bl"><span>${s}</span><span style="color:var(--grey)">${n}</span></div>
-    <div class="bt"><div class="bf" style="width:${n/mx*100}%;background:linear-gradient(90deg,${sc(s)},${sc(s)}88)"></div></div>
+  const el = document.getElementById('d-sectors');
+  const cnt = {};
+  D.locs.forEach(l => { if(!cnt[l.sector]) cnt[l.sector] = 0; });
+  D.reports.forEach(r => { const f = D.locs.find(l => l.name === gc(r,'loc')); if(f) cnt[f.sector] = (cnt[f.sector] || 0) + 1; });
+  const entries = Object.entries(cnt);
+  if(!entries.some(e => e[1] > 0)){ el.innerHTML = '<div class="empty"><div class="ei">📈</div><p>بعد ربط البيانات</p></div>'; return; }
+  const mx = Math.max(...entries.map(e => e[1]), 1);
+  el.innerHTML = entries.map(([s, n]) => `<div class="bar">
+    <div class="bl"><span>${esc(s)}</span><span style="color:var(--grey)">${n}</span></div>
+    <div class="bt"><div class="bf" style="width:${n/mx*100}%;background:linear-gradient(90deg,${esc(sc(s))},${esc(sc(s))}88)"></div></div>
   </div>`).join('');
 }
 
 function renderProbs(){
-  const el=document.getElementById('d-problems');
-  const p=D.reports.filter(r=>gc(r,'od')==='نعم'||gc(r,'lk')==='نعم'||gc(r,'ft')==='نعم');
-  if(!p.length){el.innerHTML='<div class="empty"><div class="ei">✅</div><p>لا مشاكل</p></div>';return}
-  const by={};p.forEach(r=>{const l=gc(r,'loc')||'?';if(!by[l])by[l]=[];by[l].push(r)});
-  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px">
-    ${Object.entries(by).slice(0,12).map(([l,rs])=>`<div style="background:var(--card2);border:1px solid #e8404030;border-radius:9px;padding:11px"><div style="font-weight:700;font-size:12px;margin-bottom:4px">⚠️ ${l}</div><div style="font-size:11px;color:var(--grey)">${rs.length} تقرير</div></div>`).join('')}
+  const el = document.getElementById('d-problems');
+  const p = D.reports.filter(r => gc(r,'od') === 'نعم' || gc(r,'lk') === 'نعم' || gc(r,'ft') === 'نعم');
+  if(!p.length){ el.innerHTML = '<div class="empty"><div class="ei">✅</div><p>لا مشاكل</p></div>'; return; }
+  const by = {};
+  p.forEach(r => { const l = gc(r,'loc') || '?'; if(!by[l]) by[l] = []; by[l].push(r); });
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px">
+    ${Object.entries(by).slice(0,12).map(([l,rs]) =>
+      `<div style="background:var(--card2);border:1px solid #e8404030;border-radius:9px;padding:11px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:4px">⚠️ ${esc(l)}</div>
+        <div style="font-size:11px;color:var(--grey)">${rs.length} تقرير</div>
+      </div>`).join('')}
   </div>`;
 }
 
 function renderTable(){
-  const tbody=document.getElementById('w-table');
-  if(!D.reports.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--grey);padding:24px">لا بيانات</td></tr>';return}
-  tbody.innerHTML=[...D.reports].reverse().slice(0,100).map(r=>{
-    const ts=gc(r,'ts'),t=ts?new Date(ts).toLocaleString('ar'):'—';
-    const od=gc(r,'od'),lk=gc(r,'lk'),ft=gc(r,'ft');
-    const bad=od==='نعم'||lk==='نعم'||ft==='نعم';
-    const rat=parseFloat(gc(r,'rat'));
-    return`<tr><td style="font-size:11px;color:var(--grey)">${t}</td>
-      <td style="font-weight:600">${gc(r,'loc')||'—'}</td>
-      <td>${gc(r,'sup')||'—'}</td><td>${gc(r,'wrk')||'—'}</td>
-      <td><span class="badge ${od==='نعم'?'bbd':'bok'}">${od||'—'}</span></td>
-      <td><span class="badge ${lk==='نعم'?'bbd':'bok'}">${lk||'—'}</span></td>
-      <td><span class="badge ${ft==='نعم'?'bbd':'bok'}">${ft||'—'}</span></td>
-      <td>${!isNaN(rat)?'⭐'.repeat(Math.min(Math.round(rat),5)):' —'}</td>
+  const tbody = document.getElementById('w-table');
+  if(!D.reports.length){ tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--grey);padding:24px">لا بيانات</td></tr>'; return; }
+  tbody.innerHTML = [...D.reports].reverse().slice(0,100).map(r => {
+    const ts = gc(r,'ts'), t = ts ? new Date(ts).toLocaleString('ar') : '—';
+    const od = gc(r,'od'), lk = gc(r,'lk'), ft = gc(r,'ft');
+    const bad = od === 'نعم' || lk === 'نعم' || ft === 'نعم';
+    const rat = parseFloat(gc(r,'rat'));
+    return `<tr>
+      <td style="font-size:11px;color:var(--grey)">${esc(t)}</td>
+      <td style="font-weight:600">${esc(gc(r,'loc')) || '—'}</td>
+      <td>${esc(gc(r,'sup')) || '—'}</td>
+      <td>${esc(gc(r,'wrk')) || '—'}</td>
+      <td><span class="badge ${od==='نعم'?'bbd':'bok'}">${esc(od) || '—'}</span></td>
+      <td><span class="badge ${lk==='نعم'?'bbd':'bok'}">${esc(lk) || '—'}</span></td>
+      <td><span class="badge ${ft==='نعم'?'bbd':'bok'}">${esc(ft) || '—'}</span></td>
+      <td>${!isNaN(rat) ? '⭐'.repeat(Math.min(Math.round(rat),5)) : '—'}</td>
       <td><span class="badge ${bad?'bwn':'bok'}">${bad?'⚠️':'✅'}</span></td>
     </tr>`;
   }).join('');
 }
 
 function renderWorkers(){
-  const today=new Date().toDateString();
-  const tr=D.reports.filter(r=>{const ts=gc(r,'ts');return ts&&new Date(ts).toDateString()===today});
-  const sups=[...new Set(tr.map(r=>gc(r,'sup')).filter(Boolean))];
-  const locs=[...new Set(tr.map(r=>gc(r,'loc')).filter(Boolean))];
-  document.getElementById('w-sups').innerHTML=sups.length
-    ?sups.map(s=>`<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px;display:flex;align-items:center;gap:7px"><span class="dot dg"></span>${s}</div>`).join('')
-    :'<div class="empty"><p>لا بيانات</p></div>';
-  document.getElementById('w-locs').innerHTML=locs.length
-    ?locs.map(l=>`<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px">📍 ${l}</div>`).join('')
-    :'<div class="empty"><p>لا بيانات</p></div>';
+  const today = new Date().toDateString();
+  const tr = D.reports.filter(r => { const ts = gc(r,'ts'); return ts && new Date(ts).toDateString() === today; });
+  const sups = [...new Set(tr.map(r => gc(r,'sup')).filter(Boolean))];
+  const locs = [...new Set(tr.map(r => gc(r,'loc')).filter(Boolean))];
+  document.getElementById('w-sups').innerHTML = sups.length
+    ? sups.map(s => `<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px;display:flex;align-items:center;gap:7px"><span class="dot dg"></span>${esc(s)}</div>`).join('')
+    : '<div class="empty"><p>لا بيانات</p></div>';
+  document.getElementById('w-locs').innerHTML = locs.length
+    ? locs.map(l => `<div style="padding:8px 11px;background:var(--card2);border-radius:7px;margin-bottom:7px">📍 ${esc(l)}</div>`).join('')
+    : '<div class="empty"><p>لا بيانات</p></div>';
 }
-
 
 // ═══════════════ EXCEL / CSV UPLOAD ═══════════════
 var xlData = []; var xlHeaders = [];
 
-function handleDrop(e) {
+function handleDrop(e){
   e.preventDefault();
   document.getElementById('drop-zone').style.borderColor = 'var(--border)';
   const file = e.dataTransfer.files[0];
-  if (file) handleFile(file);
+  if(file) handleFile(file);
 }
 
-function handleFile(file) {
-  if (!file) return;
-  var name = file.name.toLowerCase();
-  var reader = new FileReader();
-
-  if (name.endsWith('.csv')) {
-    reader.onload = function(e) {
+function handleFile(file){
+  if(!file) return;
+  const name = file.name.toLowerCase();
+  const reader = new FileReader();
+  if(name.endsWith('.csv')){
+    reader.onload = function(e){
       const text = e.target.result;
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       xlHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
@@ -753,82 +879,81 @@ function handleFile(file) {
     };
     reader.readAsText(file, 'UTF-8');
   } else {
-    reader.onload = function(e) {
+    reader.onload = function(e){
       try {
-        var wb = XLSX.read(e.target.result, {type:'array'});
-        var ws = wb.Sheets[wb.SheetNames[0]];
-        var json = XLSX.utils.sheet_to_json(ws, {header:1});
-        if (!json.length) return alert('الملف فارغ');
-        xlHeaders = json[0].map(function(h){return String(h||'').trim();});
-        xlData = json.slice(1).filter(function(r){return r.some(function(c){return c;});});
+        const wb = XLSX.read(e.target.result, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, {header:1});
+        if(!json.length) return toast('الملف فارغ', 'err');
+        xlHeaders = json[0].map(h => String(h||'').trim());
+        xlData = json.slice(1).filter(r => r.some(c => c));
         showXLPreview();
-      } catch(err) { alert('خطأ في قراءة الملف: ' + err.message); }
+      } catch(err){ toast('خطأ في قراءة الملف: ' + err.message, 'err'); }
     };
     reader.readAsArrayBuffer(file);
   }
 }
 
-function showXLPreview() {
+function showXLPreview(){
   const prev = document.getElementById('xl-preview');
   const colSel = document.getElementById('xl-col');
   const secSel = document.getElementById('xl-sec');
-
-  // Fill columns
-  colSel.innerHTML = xlHeaders.map((h,i) => `<option value="${i}">${h}</option>`).join('');
-
-  // Fill sectors
+  colSel.innerHTML = xlHeaders.map((h,i) => `<option value="${i}">${esc(h)}</option>`).join('');
   secSel.innerHTML = '<option value="">-- اختر --</option>';
   D.secs.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; secSel.appendChild(o); });
-
-  // Show sample
   const sample = xlData.slice(0,5).map(r => r[0]).filter(Boolean);
   document.getElementById('xl-sample').innerHTML =
-    `<b>معاينة أول ${sample.length} صفوف:</b> ${sample.join(' — ')} ${xlData.length > 5 ? `... وأكثر (${xlData.length} إجمالاً)` : ''}`;
-
+    `<b>معاينة أول ${sample.length} صفوف:</b> ${sample.map(esc).join(' — ')}${xlData.length > 5 ? ` ... وأكثر (${xlData.length} إجمالاً)` : ''}`;
   prev.style.display = 'block';
-  // Animate drop zone
   document.getElementById('drop-zone').style.borderColor = 'var(--green)';
 }
 
-function importFromExcel() {
+function importFromExcel(){
   const colIdx = parseInt(document.getElementById('xl-col').value);
   const sector = document.getElementById('xl-sec').value;
-  if (!sector) return alert('اختر القطاع');
-  if (!xlData.length) return alert('لا توجد بيانات');
-
+  if(!sector) return toast('اختر القطاع', 'err');
+  if(!xlData.length) return toast('لا توجد بيانات', 'err');
   let added = 0;
   xlData.forEach(row => {
     const name = String(row[colIdx]||'').trim();
-    if (!name) return;
-    if (!D.locs.find(l => l.name === name)) {
-      D.locs.push({id: Date.now()+Math.random(), name, sector});
-      added++;
+    if(!name) return;
+    if(!D.locs.find(l => l.name === name)){
+      D.locs.push({id:uid(), name, sector}); added++;
     }
   });
-
-  if (!added) return alert('لا توجد مواقع جديدة — ربما كلها موجودة بالفعل');
+  if(!added) return toast('لا توجد مواقع جديدة — ربما كلها موجودة بالفعل', 'inf');
   sv(); renderQR(); renderQRFilters(); renderL();
   document.getElementById('xl-preview').style.display = 'none';
   document.getElementById('drop-zone').style.borderColor = 'var(--border)';
   xlData = []; xlHeaders = [];
-  alert(`✅ تم إضافة ${added} موقع وتوليد QR Codes!`);
+  toast(`✅ تم إضافة ${added} موقع وتوليد QR Codes!`);
 }
 
 // ═══════════════ SETTINGS ═══════════════
 function saveSet(){
-  const su=document.getElementById('sheets-url')?.value.trim(); if(su) D.sheetsUrl=su;
-  ['loc','sup','wrk','rat','od','lk','ft','ts'].forEach(k=>{const el=document.getElementById('c-'+k);if(el)D.cols[k]=el.value});
-  sv(); updateAlert(); alert('✅ تم الحفظ');
+  const su = document.getElementById('sheets-url')?.value.trim(); if(su) D.sheetsUrl = su;
+  ['loc','sup','wrk','rat','od','lk','ft','ts'].forEach(k => {
+    const el = document.getElementById('c-'+k); if(el) D.cols[k] = el.value;
+  });
+  sv(); updateAlert(); toast('✅ تم حفظ الإعدادات');
 }
 
 function copyCode(){
-  const code=document.getElementById('scode').textContent;
-  navigator.clipboard.writeText(code).then(()=>alert('✅ تم النسخ')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('✅ تم النسخ');
-  });
+  const code = document.getElementById('scode').textContent;
+  navigator.clipboard.writeText(code)
+    .then(() => toast('✅ تم نسخ الكود'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = code; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('✅ تم نسخ الكود');
+    });
 }
 
-function clrAll(){if(!confirm('مسح كل البيانات؟')) return;localStorage.removeItem('co_v2');location.reload()}
+function clrAll(){
+  if(!confirm('مسح كل البيانات نهائياً؟')) return;
+  localStorage.removeItem('co_v2'); location.reload();
+}
 </script>
 </body>
 </html>
